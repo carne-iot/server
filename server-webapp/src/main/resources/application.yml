@@ -1,0 +1,90 @@
+# Default Configuration
+
+spring:
+    profiles:
+        active: dev
+
+    jersey:
+        servlet:
+            load-on-startup: 1
+        type: servlet
+
+    # Mock datasource for booting purposes
+    # Change as needed
+    datasource:
+        url: jdbc:postgresql://localhost:5432/carne-iot
+        username: carne-iot
+        password: tBdixvp6Pls0Va3E
+
+    jpa:
+        hibernate:
+            ddl-auto: none
+        properties:
+            hibernate:
+                show_sql: false
+                format_sql: false
+
+server:
+    port: 8000
+    context-path: /
+    error:
+        include-stacktrace: never
+        whitelabel:
+            enabled: false
+
+logging:
+    path: /tmp/logs/ar.edu.itba.iot.carne-iot/server
+
+security:
+    sessions: stateless
+
+
+custom:
+    rolling-policy:
+        max-history: 5
+    security:
+        jwt:
+          duration: 3600
+
+---
+# Configuration for Development Environment
+
+spring:
+    profiles:
+        - dev
+        - development
+
+    jpa:
+        properties:
+            hibernate:
+                format_sql: true
+
+logging:
+    config: classpath:logging/logback-spring-dev.xml
+
+custom:
+    security:
+        jwt:
+            signing-key: supersecretkey
+
+
+---
+# Configuration for Staging Environment
+
+spring:
+    profiles:
+        - staging
+
+logging:
+    config: classpath:logging/logback-spring-staging.xml
+
+---
+# Configuration for Production Environment
+
+spring:
+    profiles:
+        - prod
+        - production
+
+logging:
+    config: classpath:logging/logback-spring-prod.xml

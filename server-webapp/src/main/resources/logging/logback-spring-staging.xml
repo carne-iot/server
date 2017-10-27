@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!--
+        In development, the application will log
+        DEBUG messages for own classes and SQL statements executed by Hibernate, and
+        INFO messages for the rest of classes,
+        into the console and into a file specified by custom.rolling-policy.max-history property
+    -->
+
+
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
+    <include resource="logging/file-appender.xml"/>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE-APPENDER"/>
+    </root>
+    <!-- Log SQL queries made by Hibernate -->
+    <logger name="org.hibernate.SQL" level="DEBUG" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE-APPENDER"/>
+    </logger>
+    <logger name="com.bellotapps.utils.error_handler" level="DEBUG" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE-APPENDER"/>
+    </logger>
+    <logger name="ar.edu.itba.iot.carne_iot.server" level="DEBUG" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE-APPENDER"/>
+    </logger>
+
+</configuration>

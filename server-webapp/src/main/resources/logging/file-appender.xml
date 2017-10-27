@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<included>
+
+    <!-- This file defines a File Logback Appender to reuse within profiles that require file logging -->
+    <!-- It can be customized by setting logging.path and custom.rolling-policy.max-history properties -->
+
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    <springProperty name="LOG_PATH" source="logging.path"/>
+    <springProperty name="MAX_HISTORY" source="custom.rolling-policy.max-history"/>
+
+
+    <appender name="FILE-APPENDER" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <encoder>
+            <pattern>${FILE_LOG_PATTERN}</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>${MAX_HISTORY}</maxHistory>
+        </rollingPolicy>
+    </appender>
+</included>

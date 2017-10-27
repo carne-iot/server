@@ -1,0 +1,19 @@
+{
+  "properties": [
+    {
+      "name": "custom.rolling-policy.max-history",
+      "type": "java.lang.Integer",
+      "description": "Description for custom.rolling-policy.max-history."
+    },
+    {
+      "name": "custom.security.jwt.signing-key",
+      "type": "java.lang.String",
+      "description": "Secret key to sign JWTs."
+    },
+    {
+      "name": "custom.security.jwt.duration",
+      "type": "java.lang.Long",
+      "description": "Amount of seconds the token will last."
+    }
+  ]
+}

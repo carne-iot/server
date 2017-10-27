@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!--
+        In production, the application will only log INFO messages
+        into a file specified by custom.rolling-policy.max-history property
+    -->
+
+    <include resource="logging/file-appender.xml"/>
+
+    <root level="INFO">
+        <appender-ref ref="FILE-APPENDER"/>
+    </root>
+
+</configuration>

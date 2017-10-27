@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>ar.edu.itba.iot.carne-iot</groupId>
+    <artifactId>server</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>${project.groupId}:${project.artifactId}</name>
+
+    <properties>
+        <!-- ********************** -->
+        <!--        Encoding        -->
+        <!-- ********************** -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!-- ********************** -->
+        <!--    Sub modules names   -->
+        <!-- ********************** -->
+        <core-module>server-core</core-module>
+        <persistence-interfaces-module>server-persistence-interfaces</persistence-interfaces-module>
+        <services-interfaces-module>server-services-interfaces</services-interfaces-module>
+        <persistence-module>server-persistence</persistence-module>
+        <services-module>server-services</services-module>
+        <webapp-module>server-webapp</webapp-module>
+
+        <!-- ********************** -->
+        <!--        Versions        -->
+        <!-- ********************** -->
+        <!-- Plugins -->
+        <maven-compiler-plugin.version>3.5.1</maven-compiler-plugin.version>
+
+        <!-- Dependencies -->
+        <org.springframework.boot.version>1.5.8.RELEASE</org.springframework.boot.version>
+        <org.flywaydb.version>4.2.0</org.flywaydb.version>
+        <apache-commons-io.version>2.5</apache-commons-io.version>
+        <commons-validator.version>1.6</commons-validator.version>
+        <com.bellotapps.utils.error-handler.version>1.0.1-RELEASE</com.bellotapps.utils.error-handler.version>
+        <io.jsonwebtoken.jjwt.version>0.9.0</io.jsonwebtoken.jjwt.version>
+        <junit.version>RELEASE</junit.version>
+
+    </properties>
+
+    <modules>
+        <module>${core-module}</module>
+        <module>${persistence-interfaces-module}</module>
+        <module>${persistence-module}</module>
+        <module>${services-interfaces-module}</module>
+        <module>${services-module}</module>
+        <module>${webapp-module}</module>
+    </modules>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- Spring boot dependencies -->
+            <!-- Spring Boot dependency management import -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${org.springframework.boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+
+            <!-- Flyway stuff -->
+            <dependency>
+                <groupId>org.flywaydb</groupId>
+                <artifactId>flyway-core</artifactId>
+                <version>${org.flywaydb.version}</version>
+            </dependency>
+
+            <!-- Apache Commons IO -->
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>${apache-commons-io.version}</version>
+            </dependency>
+            <!-- Apache Commons Validator -->
+            <dependency>
+                <groupId>commons-validator</groupId>
+                <artifactId>commons-validator</artifactId>
+                <version>${commons-validator.version}</version>
+            </dependency>
+            <!-- Error management -->
+            <dependency>
+                <groupId>com.bellotapps.utils</groupId>
+                <artifactId>error-handler</artifactId>
+                <version>${com.bellotapps.utils.error-handler.version}</version>
+            </dependency>
+
+            <!-- JSON Web Tokens-->
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt</artifactId>
+                <version>${io.jsonwebtoken.jjwt.version}</version>
+            </dependency>
+
+            <!-- JUnit -->
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>${junit.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <!-- Maven compiler plugin -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>${maven-compiler-plugin.version}</version>
+                    <configuration>
+                        <source>1.8</source>
+                        <target>1.8</target>
+                    </configuration>
+                </plugin>
+
+                <!-- Spring Boot Plugin -->
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                    <version>${org.springframework.boot.version}</version>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>repackage</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+</project>
