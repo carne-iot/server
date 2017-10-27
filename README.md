@@ -1,4 +1,4 @@
-# Carne-IOT Server
+# Carne-IOT Server [![Build Status](https://travis-ci.org/carne-iot/server.svg?branch=master)](https://travis-ci.org/carne-iot/server)
 
 The platform server
 
