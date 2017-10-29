@@ -5,6 +5,8 @@ import ar.edu.itba.iot.carne_iot.server.services.SessionService;
 import ar.edu.itba.iot.carne_iot.server.web.controller.dtos.authentication.LoginCredentialsDto;
 import ar.edu.itba.iot.carne_iot.server.web.support.annotations.Base64url;
 import ar.edu.itba.iot.carne_iot.server.web.support.annotations.JerseyController;
+import ar.edu.itba.iot.carne_iot.server.web.support.exceptions.IllegalParamValueException;
+import ar.edu.itba.iot.carne_iot.server.web.support.exceptions.MissingJsonException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +17,8 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * API endpoint for sessions management.
@@ -68,6 +72,10 @@ public class SessionEndpoint {
     @POST
     @Path(LOGIN_ENDPOINT)
     public Response login(LoginCredentialsDto loginCredentialsDto) {
+        if (loginCredentialsDto == null) {
+            throw new MissingJsonException();
+        }
+
         LOGGER.debug("Trying to log in user with username {}", loginCredentialsDto.getUsername());
 
         // Create a JWT (i.e this creates a "session")
@@ -95,8 +103,21 @@ public class SessionEndpoint {
     @Path(LOGOUT_ROOT_ENDPOINT + "/{userId : \\d+}/{jti: .+}")
     public Response logout(@SuppressWarnings("RSReferenceInspection") @PathParam("userId") final long userId,
                            @SuppressWarnings("RSReferenceInspection") @PathParam("jti") @Base64url final Long jti) {
+        final List<String> wrongParams = new LinkedList<>();
+        if (userId <= 0) {
+            wrongParams.add("id");
+        }
+        if (jti == null) {
+            wrongParams.add("jti");
+        }
+        if (!wrongParams.isEmpty()) {
+            throw new IllegalParamValueException(wrongParams);
+        }
+
         LOGGER.debug("Trying to log out user with id {}", userId);
-        sessionService.invalidateSession(userId, jti);
+
+        //noinspection ConstantConditions
+        sessionService.invalidateSession(userId, jti); // if jti was null, exception would have being thrown.
 
         return Response.noContent().build();
     }
