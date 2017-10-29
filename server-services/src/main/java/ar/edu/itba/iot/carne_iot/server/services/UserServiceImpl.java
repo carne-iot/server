@@ -61,7 +61,7 @@ public class UserServiceImpl implements UserService, UniqueViolationExceptionThr
 
 
     @Override
-    @PreAuthorize("@userPermissionProvider.isAdmin()")
+    @PreAuthorize("@adminPermissionProvider.isAdmin()")
     public Page<User> findMatching(String fullName, LocalDate minBirthDate, LocalDate maxBirthDate,
                                    String username, String email, Pageable pageable) {
         userQueryHelper.validatePageable(pageable);
@@ -158,14 +158,14 @@ public class UserServiceImpl implements UserService, UniqueViolationExceptionThr
     }
 
     @Override
-    @PreAuthorize("@userPermissionProvider.isAdmin()")
+    @PreAuthorize("@adminPermissionProvider.isAdmin()")
     public Set<Role> getRoles(long id) {
         return getInitializing(userDao::findById, id).map(User::getRoles).orElseThrow(NoSuchEntityException::new);
     }
 
     @Override
     @Transactional
-    @PreAuthorize("@userPermissionProvider.isAdmin()")
+    @PreAuthorize("@adminPermissionProvider.isAdmin()")
     public void addRole(long id, Role role) {
         final User user = userDao.findById(id).orElseThrow(NoSuchEntityException::new);
         user.addRole(role);
@@ -174,7 +174,7 @@ public class UserServiceImpl implements UserService, UniqueViolationExceptionThr
 
     @Override
     @Transactional
-    @PreAuthorize("@userPermissionProvider.isAdmin()")
+    @PreAuthorize("@adminPermissionProvider.isAdmin()")
     public void removeRole(long id, Role role) {
         final User user = userDao.findById(id).orElseThrow(NoSuchEntityException::new);
         user.removeRole(role);
