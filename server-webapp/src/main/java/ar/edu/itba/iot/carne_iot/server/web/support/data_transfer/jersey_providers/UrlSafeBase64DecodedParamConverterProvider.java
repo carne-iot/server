@@ -1,14 +1,13 @@
 package ar.edu.itba.iot.carne_iot.server.web.support.data_transfer.jersey_providers;
 
 import ar.edu.itba.iot.carne_iot.server.web.support.annotations.Base64url;
-import org.springframework.util.Base64Utils;
+import ar.edu.itba.iot.carne_iot.server.web.support.data_transfer.Base64UrlHelper;
 
 import javax.ws.rs.ext.ParamConverter;
 import javax.ws.rs.ext.ParamConverterProvider;
 import javax.ws.rs.ext.Provider;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Function;
@@ -86,16 +85,13 @@ public class UrlSafeBase64DecodedParamConverterProvider implements ParamConverte
 
         @Override
         public T fromString(String value) {
-            final byte[] bytes = Base64Utils.decodeFromUrlSafeString(value);
-            final String asString = new String(bytes, StandardCharsets.UTF_8);
-            return fromDecodedStringFunction.apply(asString);
+            // Not caught exception will propagate till jersey throws a ParamException
+            return Base64UrlHelper.decodeToNumber(value, fromDecodedStringFunction);
         }
 
         @Override
         public String toString(T value) {
-            final String asString = toNotYetEncodedStringFunction.apply(value);
-
-            return Base64Utils.encodeToUrlSafeString(asString.getBytes());
+            return Base64UrlHelper.encodeFromNumber(value, toNotYetEncodedStringFunction);
         }
     }
 }
