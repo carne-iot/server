@@ -22,7 +22,7 @@ public interface DeviceRegistrationDao extends ExtendedJpaRepository<DeviceRegis
     Optional<DeviceRegistration> findByDeviceAndActiveTrue(Device device);
 
     /**
-     * Retrieves the active {@link DeviceRegistration} with the given {@link Device}.
+     * Retrieves the active {@link DeviceRegistration} with the given {@link Device} and {@link User}.
      *
      * @param device The registered {@link Device}.
      * @param owner  The {@link User} owning the {@link Device}.
@@ -41,10 +41,19 @@ public interface DeviceRegistrationDao extends ExtendedJpaRepository<DeviceRegis
     Optional<DeviceRegistration> findByDeviceIdAndActiveTrue(long deviceId);
 
     /**
-     * Indicates whether an active {@link DeviceRegistration} exists to the given {@link Device}.
+     * Indicates whether an active {@link DeviceRegistration} exists for the given {@link Device}.
      *
      * @param device The registered {@link Device}.
      * @return {@code true} if the given {@code device} has an active registration, or {@code false} otherwise.
      */
     boolean existsByDeviceAndActiveTrue(Device device);
+
+    /**
+     * Indicates whether an active {@link DeviceRegistration} exists for the given {@link Device} and {@link User}.
+     *
+     * @param device The registered {@link Device}.
+     * @param owner  The {@link User} owning the {@link Device}.
+     * @return {@code true} if it exists, or {@code false} otherwise.
+     */
+    boolean existsByDeviceAndOwnerAndActiveTrue(Device device, User owner);
 }

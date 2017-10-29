@@ -138,6 +138,11 @@ public class DeviceServiceImpl implements DeviceService, UniqueViolationExceptio
         final Device device = deviceDao.findById(deviceId).orElseThrow(NoSuchEntityException::new);
         final User user = userDao.findById(ownerId).orElseThrow(NoSuchEntityException::new);
 
+        // If the device is already registered by the user, return and be idempotent
+        if (deviceRegistrationDao.existsByDeviceAndOwnerAndActiveTrue(device, user)) {
+            return;
+        }
+
         // Check if device is not registered already
         if (deviceRegistrationDao.existsByDeviceAndActiveTrue(device)) {
             throwUniqueViolationException(Collections.singletonList(ALREADY_REGISTERED));
