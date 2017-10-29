@@ -53,7 +53,7 @@ import java.util.stream.StreamSupport;
     }
 
     /**
-     * Validates that the given {@link Pageable} is valid for querying entities of the given {@@code klass}.
+     * Validates that the given {@link Pageable} is valid for querying entities of the given {@code klass}.
      *
      * @param pageable The {@link Pageable} to be validated.
      * @param klass    The class representing the entity.
@@ -61,14 +61,30 @@ import java.util.stream.StreamSupport;
      * @throws InvalidPropertiesException If it has a {@link org.springframework.data.domain.Sort}
      *                                    with invalid properties.
      */
+    /* package */
     static <T> void validatePageable(Pageable pageable, Class<T> klass) throws InvalidPropertiesException {
+        final Set<String> properties = Arrays.stream(klass.getDeclaredFields())
+                .map(Field::getName)
+                .collect(Collectors.toSet());
+
+        validatePageable(pageable, properties);
+    }
+
+    /**
+     * Validates that the given {@link Pageable} is valid for querying entities of the given {@code klass}.
+     *
+     * @param pageable   The {@link Pageable} to be validated.
+     * @param properties A {@link Set} of {@link String}
+     *                   containing the properties that can be held in the {@link Pageable}.
+     * @throws InvalidPropertiesException If it has a {@link org.springframework.data.domain.Sort}
+     *                                    with invalid properties.
+     */
+    /* package */
+    static void validatePageable(Pageable pageable, Set<String> properties) throws InvalidPropertiesException {
         final Sort sort = pageable.getSort();
         if (sort == null) {
             return;
         }
-        final Set<String> properties = Arrays.stream(klass.getDeclaredFields())
-                .map(Field::getName)
-                .collect(Collectors.toSet());
 
         final List<String> invalidProperties = StreamSupport.stream(Spliterators
                 .spliteratorUnknownSize(sort.iterator(), Spliterator.ORDERED), false)

@@ -60,4 +60,28 @@ public class ValidationErrorConstants {
 
     public static final ValidationError MISSING_ROLE = new ValidationError(MISSING_VALUE, "role",
             "The role is missing.");
+
+
+    public static final ValidationError MISSING_TEMPERATURE = new ValidationError(MISSING_VALUE, "temperature",
+            "The temperature is missing.");
+
+    public static final ValidationError TOO_LOW_TEMPERATURE = new ValidationError(MISSING_VALUE, "temperature",
+            "The temperature is too low.");
+
+    public static final ValidationError TOO_HIGH_TEMPERATURE = new ValidationError(MISSING_VALUE, "temperature",
+            "The temperature is too high.");
+
+
+    public static final ValidationError NICKNAME_TOO_SHORT = new ValidationError(MISSING_VALUE, "nickname",
+            "The nickname is too short.");
+
+    public static final ValidationError NICKNAME_TOO_LONG = new ValidationError(MISSING_VALUE, "nickname",
+            "The nickname is too long.");
+
+
+    public static final ValidationError MISSING_DEVICE = new ValidationError(MISSING_VALUE, "device",
+            "The device is missing.");
+
+    public static final ValidationError MISSING_OWNER = new ValidationError(MISSING_VALUE, "owner",
+            "The owner is missing.");
 }

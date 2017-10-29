@@ -1,21 +1,16 @@
 package ar.edu.itba.iot.carne_iot.server.security;
 
-import ar.edu.itba.iot.carne_iot.server.models.Role;
 import ar.edu.itba.iot.carne_iot.server.models.User;
 import ar.edu.itba.iot.carne_iot.server.persistence.daos.UserDao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
-import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 /**
  * Concrete implementation of {@link UserPermissionProvider}.
@@ -75,12 +70,6 @@ import java.util.stream.Collectors;
         return performAuthorization(userDao::findByEmail, email);
     }
 
-    @Override
-    public boolean isAdmin() {
-        final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return authentication != null && isAdmin(authentication);
-    }
-
     /**
      * Performs authorization over the {@link User} contained in the {@link Optional}
      * retrieved by the given {@code userGetterFunction}, which takes the given {@code searchCriteria}.
@@ -100,7 +89,7 @@ import java.util.stream.Collectors;
         if (authentication == null) {
             return false;
         }
-        if (isAdmin(authentication)) {
+        if (PermissionProviderHelper.isAdmin(authentication)) {
             return true;
         }
 
@@ -114,20 +103,5 @@ import java.util.stream.Collectors;
         return userGetterFunction.apply(searchCriteria)
                 .map(user -> user.getUsername().equals(principal))
                 .orElse(false);
-    }
-
-    /**
-     * Checks whether the currently authenticated {@link User} is admin (i.e has {@link Role#ROLE_ADMIN} role).
-     *
-     * @param authentication The {@link Authentication} containing the currently authenticated {@link User} information.
-     * @return {@code true} if the currently authenticated {@link User} is admin, or {@code false} otherwise.
-     */
-    private static boolean isAdmin(Authentication authentication) {
-        Objects.requireNonNull(authentication, "The authentication must not be null");
-        final Set<String> roles = authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.toSet());
-
-        return roles.contains(Role.ROLE_ADMIN.toString());
     }
 }

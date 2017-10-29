@@ -37,7 +37,7 @@ public interface UserPermissionProvider {
      * Tells whether the currently authenticated {@link ar.edu.itba.iot.carne_iot.server.models.User}
      * can write the {@link ar.edu.itba.iot.carne_iot.server.models.User} with the given {@code id}.
      *
-     * @param id The id of the {@link ar.edu.itba.iot.carne_iot.server.models.User} to be writed.
+     * @param id The id of the {@link ar.edu.itba.iot.carne_iot.server.models.User} to be written.
      * @return {@code true} if it has permission, or {@code false} otherwise.
      */
     boolean writeById(long id);
@@ -69,12 +69,4 @@ public interface UserPermissionProvider {
      * @return {@code true} if it has permission, or {@code false} otherwise.
      */
     boolean deleteByEmail(String email);
-
-    /**
-     * Tells whether the currently authenticated {@link ar.edu.itba.iot.carne_iot.server.models.User}
-     * is admin (i.e (i.e has {@link ar.edu.itba.iot.carne_iot.server.models.Role#ROLE_ADMIN} role)
-     *
-     * @return {@code true} if it is admin, or {@code false} otherwise.
-     */
-    boolean isAdmin();
 }

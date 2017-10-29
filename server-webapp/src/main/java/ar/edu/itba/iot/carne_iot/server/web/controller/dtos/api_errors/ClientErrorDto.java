@@ -140,6 +140,22 @@ public abstract class ClientErrorDto extends ApiErrorDto {
             protected String getMessage() {
                 return "There were validation errors when creating or updating an entity";
             }
+        },
+        /**
+         * Indicates that an operation over an entity was tried to be performed when the state of it was invalid
+         * for the operation to be performed).
+         */
+        ILLEGAL_STATE {
+            @Override
+            protected String getDescription() {
+                return "Illegal State Error";
+            }
+
+            @Override
+            protected String getMessage() {
+                return "An operation was tried to be performed over an entity when its state " +
+                        "was not valid for the operation to be performed ";
+            }
         };
 
         /**
