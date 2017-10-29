@@ -1,7 +1,9 @@
 package ar.edu.itba.iot.carne_iot.server.services;
 
+import ar.edu.itba.iot.carne_iot.server.error_handling.errros.IllegalStateError;
 import ar.edu.itba.iot.carne_iot.server.error_handling.errros.UniqueViolationError;
 import ar.edu.itba.iot.carne_iot.server.error_handling.helpers.UniqueViolationExceptionThrower;
+import ar.edu.itba.iot.carne_iot.server.exceptions.CustomIllegalStateException;
 import ar.edu.itba.iot.carne_iot.server.exceptions.NoSuchEntityException;
 import ar.edu.itba.iot.carne_iot.server.models.Device;
 import ar.edu.itba.iot.carne_iot.server.models.DeviceRegistration;
@@ -224,7 +226,7 @@ public class DeviceServiceImpl implements DeviceService, UniqueViolationExceptio
 
         // Check if the device is registered
         if (!deviceRegistrationDao.existsByDeviceAndActiveTrue(device)) {
-            throw new RuntimeException("Unregistered"); // TODO: define custom exception
+            throw new CustomIllegalStateException(OPERATION_OVER_UNREGISTERED_DEVICE);
         }
 
         changeStateOperation.accept(device);
@@ -256,4 +258,8 @@ public class DeviceServiceImpl implements DeviceService, UniqueViolationExceptio
 
     private static final UniqueViolationError ALREADY_REGISTERED =
             new UniqueViolationError("The device id is already registered", "deviceId");
+
+    private static final IllegalStateError OPERATION_OVER_UNREGISTERED_DEVICE =
+            new IllegalStateError("Device must be registered to operate over it",
+                    Device.class.getSimpleName());
 }

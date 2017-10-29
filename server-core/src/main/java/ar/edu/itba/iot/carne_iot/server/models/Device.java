@@ -1,8 +1,10 @@
 package ar.edu.itba.iot.carne_iot.server.models;
 
+import ar.edu.itba.iot.carne_iot.server.error_handling.errros.IllegalStateError;
 import ar.edu.itba.iot.carne_iot.server.error_handling.errros.ValidationError;
 import ar.edu.itba.iot.carne_iot.server.error_handling.helpers.ValidationExceptionThrower;
 import ar.edu.itba.iot.carne_iot.server.error_handling.helpers.ValidationHelper;
+import ar.edu.itba.iot.carne_iot.server.exceptions.CustomIllegalStateException;
 import ar.edu.itba.iot.carne_iot.server.exceptions.ValidationException;
 import ar.edu.itba.iot.carne_iot.server.models.constants.ValidationConstants;
 import ar.edu.itba.iot.carne_iot.server.models.constants.ValidationErrorConstants;
@@ -99,7 +101,9 @@ public class Device implements ValidationExceptionThrower {
      * @throws ValidationException If the temperature is not valid.
      */
     public void setTemperature(BigDecimal temperature) throws ValidationException {
-        // TODO: validate state
+        if (this.state != State.ACTIVE) {
+            throw new CustomIllegalStateException(CHANGE_TEMPERATURE_IN_NOT_ACTIVE_STATE);
+        }
         validateTemperature(temperature);
 
         this.temperature = temperature;
@@ -159,4 +163,8 @@ public class Device implements ValidationExceptionThrower {
 
     private static final int PRECISION = 5;
     private static final int SCALE = 2;
+
+    private static final IllegalStateError CHANGE_TEMPERATURE_IN_NOT_ACTIVE_STATE =
+            new IllegalStateError("Device must be active to set the temperature",
+                    Device.class.getSimpleName());
 }
