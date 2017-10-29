@@ -99,11 +99,27 @@ public class Device implements ValidationExceptionThrower {
      * @throws ValidationException If the temperature is not valid.
      */
     public void setTemperature(BigDecimal temperature) throws ValidationException {
+        // TODO: validate state
         validateTemperature(temperature);
 
         this.temperature = temperature;
         this.lastTemperatureUpdate = Instant.now();
     }
+
+    /**
+     * Changes this device state to active.
+     */
+    public void startCooking() {
+        this.state = State.ACTIVE;
+    }
+
+    /**
+     * Changes this device state to idle.
+     */
+    public void stopCooking() {
+        this.state = State.IDLE;
+    }
+
 
     /**
      * Enum listing all possible states for a {@link Device}.

@@ -128,6 +128,13 @@ public class DeviceRegistration implements ValidationExceptionThrower {
     }
 
     /**
+     * Makes this registration inactive (i.e unregisters the device).
+     */
+    public void inactivate() {
+        this.active = false;
+    }
+
+    /**
      * Changes the nickname given to the registered device.
      *
      * @param nickname The new nickname.
@@ -137,6 +144,13 @@ public class DeviceRegistration implements ValidationExceptionThrower {
         validateNickname(nickname);
 
         this.nickname = nickname;
+    }
+
+    /**
+     * Removes the nickname to the registered device (i.e sets it to {@code null}).
+     */
+    public void removeNickname() {
+        this.setNickname(null);
     }
 
 
