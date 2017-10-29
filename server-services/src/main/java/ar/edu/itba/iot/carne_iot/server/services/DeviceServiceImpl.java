@@ -16,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -71,6 +72,7 @@ public class DeviceServiceImpl implements DeviceService, UniqueViolationExceptio
 
 
     @Override
+    @PreAuthorize("@adminPermissionProvider.isAdmin()")
     public Page<RegisteredDeviceWrapper> listDevices(Pageable pageable) {
         deviceQueryHelper.validatePageable(pageable);
 
@@ -79,12 +81,14 @@ public class DeviceServiceImpl implements DeviceService, UniqueViolationExceptio
     }
 
     @Override
+    @PreAuthorize("@adminPermissionProvider.isAdmin()")
     public Optional<RegisteredDeviceWrapper> getDeviceWithRegistrationData(long deviceId) {
         return deviceDao.findById(deviceId).map(toRegisteredDeviceWrapper());
     }
 
     @Override
     @Transactional
+    @PreAuthorize("@adminPermissionProvider.isAdmin()")
     public Device createDevice(long deviceId) {
         if (deviceDao.exists(deviceId)) {
             throwUniqueViolationException(Collections.singletonList(DEVICE_ALREADY_CREATED));
@@ -96,6 +100,7 @@ public class DeviceServiceImpl implements DeviceService, UniqueViolationExceptio
     }
 
     @Override
+    @PreAuthorize("@userPermissionProvider.readById(#ownerId)")
     public Page<DeviceWithNicknameWrapper> listUserDevices(long ownerId, Pageable pageable) {
         final User owner = userDao.findById(ownerId).orElseThrow(NoSuchEntityException::new);
 
@@ -112,6 +117,7 @@ public class DeviceServiceImpl implements DeviceService, UniqueViolationExceptio
     }
 
     @Override
+    @PreAuthorize("@devicePermissionProvider.isOwnerOrAdmin(#deviceId)")
     public Optional<DeviceWithNicknameWrapper> getRegisteredDevice(long ownerId, long deviceId) {
         final Device device = deviceDao.findById(deviceId).orElseThrow(NoSuchEntityException::new);
         final User owner = userDao.findById(ownerId).orElseThrow(NoSuchEntityException::new);
@@ -122,18 +128,21 @@ public class DeviceServiceImpl implements DeviceService, UniqueViolationExceptio
 
     @Override
     @Transactional
+    @PreAuthorize("@devicePermissionProvider.isOwnerOrAdmin(#deviceId)")
     public void setNickname(long ownerId, long deviceId, String nickname) {
         performRegistrationChangeOfState(ownerId, deviceId, registration -> registration.setNickname(nickname));
     }
 
     @Override
     @Transactional
+    @PreAuthorize("@devicePermissionProvider.isOwnerOrAdmin(#deviceId)")
     public void deleteNickname(long ownerId, long deviceId) {
         performRegistrationChangeOfState(ownerId, deviceId, DeviceRegistration::removeNickname);
     }
 
     @Override
     @Transactional
+    @PreAuthorize("@devicePermissionProvider.isOwnerOrAdmin(#deviceId)")
     public void registerDevice(long ownerId, long deviceId) {
         final Device device = deviceDao.findById(deviceId).orElseThrow(NoSuchEntityException::new);
         final User user = userDao.findById(ownerId).orElseThrow(NoSuchEntityException::new);
@@ -154,6 +163,7 @@ public class DeviceServiceImpl implements DeviceService, UniqueViolationExceptio
 
     @Override
     @Transactional
+    @PreAuthorize("@devicePermissionProvider.isOwnerOrAdmin(#deviceId)")
     public void unregisterDevice(long deviceId) {
         final Device device = deviceDao.findById(deviceId).orElseThrow(NoSuchEntityException::new);
 
@@ -168,18 +178,21 @@ public class DeviceServiceImpl implements DeviceService, UniqueViolationExceptio
 
     @Override
     @Transactional
+    @PreAuthorize("@devicePermissionProvider.isOwnerOrAdmin(#deviceId)")
     public void startCooking(long deviceId) {
         performChangeOfState(deviceId, Device::startCooking);
     }
 
     @Override
     @Transactional
+    @PreAuthorize("@devicePermissionProvider.isOwnerOrAdmin(#deviceId)")
     public void stopCooking(long deviceId) {
         performChangeOfState(deviceId, Device::stopCooking);
     }
 
     @Override
     @Transactional
+    @PreAuthorize("@devicePermissionProvider.isOwnerOrAdmin(#deviceId)")
     public void updateTemperature(long deviceId, BigDecimal temperature) {
         performChangeOfState(deviceId, (deviceLambda) -> deviceLambda.setTemperature(temperature));
     }
