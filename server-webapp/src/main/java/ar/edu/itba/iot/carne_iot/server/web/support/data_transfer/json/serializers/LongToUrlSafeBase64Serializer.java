@@ -1,9 +1,9 @@
 package ar.edu.itba.iot.carne_iot.server.web.support.data_transfer.json.serializers;
 
+import ar.edu.itba.iot.carne_iot.server.web.support.data_transfer.Base64UrlHelper;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-import org.springframework.util.Base64Utils;
 
 import java.io.IOException;
 
@@ -23,6 +23,6 @@ public class LongToUrlSafeBase64Serializer extends StdSerializer<Long> {
     @Override
     public void serialize(Long value, JsonGenerator gen, SerializerProvider provider)
             throws IOException {
-        gen.writeString(Base64Utils.encodeToUrlSafeString(value.toString().getBytes()));
+        gen.writeString(Base64UrlHelper.encodeFromNumber(value, Object::toString));
     }
 }
