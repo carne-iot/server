@@ -144,7 +144,7 @@ public class DeviceServiceImpl implements DeviceService, UniqueViolationExceptio
 
     @Override
     @Transactional
-    @PreAuthorize("@devicePermissionProvider.isOwnerOrAdmin(#deviceId)")
+    @PreAuthorize("@userPermissionProvider.writeById(#ownerId)")
     public void registerDevice(long ownerId, long deviceId) {
         final Device device = deviceDao.findById(deviceId).orElseThrow(NoSuchEntityException::new);
         final User user = userDao.findById(ownerId).orElseThrow(NoSuchEntityException::new);
