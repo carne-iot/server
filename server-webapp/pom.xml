@@ -72,6 +72,13 @@
         </dependency>
 
 
+        <!-- Spring Hateoas -->
+        <dependency>
+            <groupId>org.springframework.hateoas</groupId>
+            <artifactId>spring-hateoas</artifactId>
+        </dependency>
+
+
         <!-- Database -->
         <dependency>
             <groupId>org.postgresql</groupId>
