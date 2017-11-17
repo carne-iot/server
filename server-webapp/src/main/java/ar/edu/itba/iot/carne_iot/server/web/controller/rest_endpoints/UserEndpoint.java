@@ -75,6 +75,16 @@ public class UserEndpoint {
     // Basic User Operation
     // ======================================
 
+    @GET
+    @Path("/fuck")
+    public Response testing() {
+        return userService.getById(2)
+                .map(UserDto::asResource)
+                .map(Response::ok)
+                .orElse(Response.status(Response.Status.NOT_FOUND))
+                .build();
+    }
+
 
     @GET
     public Response findMatching(@QueryParam("fullName") final String fullName,
@@ -93,7 +103,7 @@ public class UserEndpoint {
                 .findMatching(fullName, minBirthDate, maxBirthDate, username, email, pageable);
 
         return Response.ok(users.getContent().stream()
-                .map(user -> new UserDto(user, getLocationUri(user, uriInfo)))
+                .map(UserDto::asResource)
                 .collect(Collectors.toList()))
                 .build();
     }
@@ -107,7 +117,7 @@ public class UserEndpoint {
 
         LOGGER.debug("Getting user by id {}", id);
 
-        return getUserBySomePropertyResponse(userService.getById(id), uriInfo);
+        return toUserResponse(userService.getById(id));
     }
 
     @GET
@@ -119,7 +129,7 @@ public class UserEndpoint {
 
         LOGGER.debug("Getting user by username {}", username);
 
-        return getUserBySomePropertyResponse(userService.getByUsername(username), uriInfo);
+        return toUserResponse(userService.getByUsername(username));
     }
 
     @GET
@@ -131,7 +141,7 @@ public class UserEndpoint {
 
         LOGGER.debug("Getting user by email {}", email);
 
-        return getUserBySomePropertyResponse(userService.getByEmail(email), uriInfo);
+        return toUserResponse(userService.getByEmail(email));
     }
 
     @POST
@@ -405,9 +415,10 @@ public class UserEndpoint {
      * created with the held in the given {@link Optional} if present,
      * or a {@link Response.Status#NOT_FOUND} {@link Response} otherwise.
      */
-    private static Response getUserBySomePropertyResponse(@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-                                                                  Optional<User> userOptional, UriInfo uriInfo) {
-        return userOptional.map(user -> Response.ok(new UserDto(user, getLocationUri(user, uriInfo))))
+    private static Response toUserResponse(@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+                                                   Optional<User> userOptional) {
+        return userOptional.map(UserDto::asResource)
+                .map(Response::ok)
                 .orElse(Response.status(Response.Status.NOT_FOUND).entity(""))
                 .build();
     }
