@@ -21,8 +21,6 @@ import org.springframework.data.domain.Pageable;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.core.UriInfo;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -315,20 +313,6 @@ public class UserEndpoint {
                 .map(Response::ok)
                 .orElse(Response.status(Response.Status.NOT_FOUND).entity(""))
                 .build();
-    }
-
-    /**
-     * Returns a {@link UriBuilder} for a given {@link User} location.
-     *
-     * @param userId  The id of {@link User}'s whose location {@link UriBuilder} must be retrieved.
-     * @param uriInfo The {@link UriInfo} holding the context.
-     * @return The initialized {@link UriBuilder}.
-     */
-    /* package */
-    static UriBuilder baseUserUriBuilder(long userId, UriInfo uriInfo) {
-        return uriInfo.getBaseUriBuilder().clone()
-                .path(USERS_ENDPOINT)
-                .path(Long.toString(userId));
     }
 
     /**
