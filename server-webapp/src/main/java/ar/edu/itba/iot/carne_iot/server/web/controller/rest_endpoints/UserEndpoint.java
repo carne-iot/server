@@ -1,15 +1,11 @@
 package ar.edu.itba.iot.carne_iot.server.web.controller.rest_endpoints;
 
-import ar.edu.itba.iot.carne_iot.server.models.Device;
 import ar.edu.itba.iot.carne_iot.server.models.Role;
 import ar.edu.itba.iot.carne_iot.server.models.User;
-import ar.edu.itba.iot.carne_iot.server.services.DeviceService;
 import ar.edu.itba.iot.carne_iot.server.services.UserService;
 import ar.edu.itba.iot.carne_iot.server.web.controller.dtos.entities.StringValueDto;
-import ar.edu.itba.iot.carne_iot.server.web.controller.dtos.entities.UserDeviceDto;
 import ar.edu.itba.iot.carne_iot.server.web.controller.dtos.entities.UserDto;
 import ar.edu.itba.iot.carne_iot.server.web.controller.hateoas.LinkCreator;
-import ar.edu.itba.iot.carne_iot.server.web.support.annotations.Base64url;
 import ar.edu.itba.iot.carne_iot.server.web.support.annotations.Java8Time;
 import ar.edu.itba.iot.carne_iot.server.web.support.annotations.JerseyController;
 import ar.edu.itba.iot.carne_iot.server.web.support.annotations.PaginationParam;
@@ -23,8 +19,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import javax.ws.rs.*;
-import javax.ws.rs.core.*;
-import java.net.URI;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.UriInfo;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -48,23 +46,16 @@ public class UserEndpoint {
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(UserEndpoint.class);
 
-    @Context
-    private UriInfo uriInfo;
 
     /**
      * The {@link UserService}.
      */
     private final UserService userService;
 
-    /**
-     * The {@link DeviceService}.
-     */
-    private final DeviceService deviceService;
 
     @Autowired
-    public UserEndpoint(UserService userService, DeviceService deviceService) {
+    public UserEndpoint(UserService userService) {
         this.userService = userService;
-        this.deviceService = deviceService;
     }
 
 
@@ -305,94 +296,6 @@ public class UserEndpoint {
         return Response.noContent().build();
     }
 
-    // ======================================
-    // User devices
-    // ======================================
-
-    @GET
-    @Path("/{id : \\d+}" + DevicesEndpoint.DEVICES_ENDPOINT)
-    public Response listUserDevices(@SuppressWarnings("RSReferenceInspection") @PathParam("id") final long id,
-                                    @PaginationParam final Pageable pageable) {
-        if (id <= 0) {
-            throw new IllegalParamValueException(Collections.singletonList("id"));
-        }
-
-        LOGGER.debug("Listing devices belonging to user with id {}", id);
-
-        final Page<DeviceService.DeviceWithNicknameWrapper> devices = deviceService.listUserDevices(id, pageable);
-
-        return Response.ok(devices.getContent().stream()
-                .map(wrapper ->
-                        new UserDeviceDto(wrapper, getUserDeviceLocationUri(id, wrapper.getDevice(), uriInfo)))
-                .collect(Collectors.toList()))
-                .build();
-    }
-
-    @GET
-    @Path("/{id : \\d+}" + DevicesEndpoint.DEVICES_ENDPOINT + "/{deviceId : .+}")
-    public Response getDevice(@SuppressWarnings("RSReferenceInspection") @PathParam("id") final long id,
-                              @SuppressWarnings("RSReferenceInspection")
-                              @PathParam("deviceId") @Base64url final Long deviceId) {
-        validateUserDeviceParams(id, deviceId);
-
-        LOGGER.debug("Getting device with id {} belonging to user with id {}", deviceId, id);
-
-        final Optional<DeviceService.DeviceWithNicknameWrapper> wrapperOptional =
-                deviceService.getRegisteredDevice(id, deviceId);
-
-        return wrapperOptional.map(wrapper ->
-                Response.ok(new UserDeviceDto(wrapper, getUserDeviceLocationUri(id, wrapper.getDevice(), uriInfo))))
-                .orElse(Response.status(Response.Status.NOT_FOUND).entity(""))
-                .build();
-    }
-
-    @PUT
-    @Path("/{id : \\d+}" + DevicesEndpoint.DEVICES_ENDPOINT + "/{deviceId : .+}")
-    public Response registerDevice(@SuppressWarnings("RSReferenceInspection") @PathParam("id") final long id,
-                                   @SuppressWarnings("RSReferenceInspection")
-                                   @PathParam("deviceId") @Base64url final Long deviceId) {
-        validateUserDeviceParams(id, deviceId);
-
-        LOGGER.debug("Registering device with id {} belonging to user with id {}", deviceId, id);
-
-        deviceService.registerDevice(id, deviceId);
-
-        return Response.noContent().build();
-    }
-
-    @PUT
-    @Path("/{id : \\d+}" + DevicesEndpoint.DEVICES_ENDPOINT + "/{deviceId : .+}/nickname")
-    public Response changeNickname(@SuppressWarnings("RSReferenceInspection") @PathParam("id") final long id,
-                                   @SuppressWarnings("RSReferenceInspection")
-                                   @PathParam("deviceId") @Base64url final Long deviceId,
-                                   final StringValueDto stringValueDto) {
-        validateUserDeviceParams(id, deviceId);
-        if (stringValueDto == null) {
-            throw new MissingJsonException();
-        }
-
-        LOGGER.debug("Changing nickname to {} to device with id {} belonging to user with id {}",
-                stringValueDto.getValue(), deviceId, id);
-
-        deviceService.setNickname(id, deviceId, stringValueDto.getValue());
-
-        return Response.noContent().build();
-    }
-
-    @DELETE
-    @Path("/{id : \\d+}" + DevicesEndpoint.DEVICES_ENDPOINT + "/{deviceId : .+}/nickname")
-    public Response deleteNickname(@SuppressWarnings("RSReferenceInspection") @PathParam("id") final long id,
-                                   @SuppressWarnings("RSReferenceInspection")
-                                   @PathParam("deviceId") @Base64url final Long deviceId) {
-        validateUserDeviceParams(id, deviceId);
-
-        LOGGER.debug("Removing nickname to device with id {} belonging to user with id {}", deviceId, id);
-
-        deviceService.deleteNickname(id, deviceId);
-
-        return Response.noContent().build();
-    }
-
 
     // ======================================
     // Helper Methods
@@ -426,54 +329,6 @@ public class UserEndpoint {
         return uriInfo.getBaseUriBuilder().clone()
                 .path(USERS_ENDPOINT)
                 .path(Long.toString(userId));
-    }
-
-    /**
-     * Returns the location {@link URI} of the given {@link User}
-     * according to the context hold by the given {@link UriInfo}
-     *
-     * @param user    The {@link User}'s whose location {@link URI} must be retrieved.
-     * @param uriInfo The {@link UriInfo} holding the context.
-     * @return The location {@link URI} of the given {@link User}
-     */
-    private static URI getLocationUri(User user, UriInfo uriInfo) {
-        return baseUserUriBuilder(user.getId(), uriInfo)
-                .build();
-    }
-
-    /**
-     * Returns the location {@link URI} of the given {@link Device} of the given {@link User},
-     * according to the context hold by the given {@link UriInfo}
-     *
-     * @param userId  The id of {@link User}'s whose location {@link URI} must be retrieved.
-     * @param device  The {@link Device}'s whose location {@link URI} must be retrieved.
-     * @param uriInfo The {@link UriInfo} holding the context.
-     * @return The location {@link URI} of the given {@link User}
-     */
-    private static URI getUserDeviceLocationUri(long userId, Device device, UriInfo uriInfo) {
-        return baseUserUriBuilder(userId, uriInfo)
-                .path(DevicesEndpoint.DEVICES_ENDPOINT)
-                .path(DevicesEndpoint.toBase64UrlId(device))
-                .build();
-    }
-
-    /**
-     * Performs validation over the given params.
-     *
-     * @param userId   The {@link User} id param to be validated.
-     * @param deviceId The {@link Device} id param to be validated.
-     */
-    private void validateUserDeviceParams(long userId, Long deviceId) {
-        final List<String> wrongParams = new LinkedList<>();
-        if (userId <= 0) {
-            wrongParams.add("id");
-        }
-        if (deviceId == null) {
-            wrongParams.add("deviceId");
-        }
-        if (!wrongParams.isEmpty()) {
-            throw new IllegalParamValueException(wrongParams);
-        }
     }
 
     /**
