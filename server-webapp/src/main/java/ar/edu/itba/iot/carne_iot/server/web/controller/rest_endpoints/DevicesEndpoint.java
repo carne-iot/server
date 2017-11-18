@@ -8,6 +8,7 @@ import ar.edu.itba.iot.carne_iot.server.services.UserService;
 import ar.edu.itba.iot.carne_iot.server.web.controller.dtos.entities.DeviceDto;
 import ar.edu.itba.iot.carne_iot.server.web.controller.dtos.entities.RegisteredDeviceDto;
 import ar.edu.itba.iot.carne_iot.server.web.controller.dtos.entities.StringValueDto;
+import ar.edu.itba.iot.carne_iot.server.web.controller.hateoas.LinkCreator;
 import ar.edu.itba.iot.carne_iot.server.web.support.annotations.Base64url;
 import ar.edu.itba.iot.carne_iot.server.web.support.annotations.JerseyController;
 import ar.edu.itba.iot.carne_iot.server.web.support.annotations.PaginationParam;
@@ -18,18 +19,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.util.Base64Utils;
 
 import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
 import java.math.BigDecimal;
-import java.net.URI;
 import java.util.Collections;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 
@@ -50,9 +46,6 @@ public class DevicesEndpoint implements ValidationExceptionThrower {
      * The {@link Logger} object.
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(DevicesEndpoint.class);
-
-    @Context
-    private UriInfo uriInfo;
 
     /**
      * The {@link UserService}.
@@ -83,7 +76,7 @@ public class DevicesEndpoint implements ValidationExceptionThrower {
                 .listDevices(pageable);
 
         return Response.ok(devices.getContent().stream()
-                .map(toWrapper())
+                .map(RegisteredDeviceDto::asResource)
                 .collect(Collectors.toList()))
                 .build();
     }
@@ -100,7 +93,8 @@ public class DevicesEndpoint implements ValidationExceptionThrower {
         final Optional<DeviceService.RegisteredDeviceWrapper> optional =
                 deviceService.getDeviceWithRegistrationData(id);
 
-        return optional.map(toWrapper()).map(Response::ok)
+        return optional.map(RegisteredDeviceDto::asResource)
+                .map(Response::ok)
                 .orElse(Response.status(Response.Status.NOT_FOUND).entity(""))
                 .build();
     }
@@ -114,8 +108,8 @@ public class DevicesEndpoint implements ValidationExceptionThrower {
                     LOGGER.debug("Creating device with id {}", id);
                     return deviceService.createDevice(deviceDto.getId());
                 })
-                .map(device -> Response
-                        .created(uriInfo.getAbsolutePathBuilder().path(String.valueOf(device.getId())).build()))
+                .map(device ->
+                        Response.created(LinkCreator.createSelfURI(device, Device::getId, DevicesEndpoint.class)))
                 .orElseThrow(MissingJsonException::new)
                 .build();
     }
@@ -184,65 +178,5 @@ public class DevicesEndpoint implements ValidationExceptionThrower {
         deviceService.updateTemperature(id, value);
 
         return Response.noContent().build();
-    }
-
-
-    // ======================================
-    // Helper Methods
-    // ======================================
-
-
-    /**
-     * Returns a {@link Function} that takes a {@link DeviceService.RegisteredDeviceWrapper}
-     * and creates a {@link RegisteredDeviceDto} according to the {@link Device} it takes.
-     *
-     * @return The said function.
-     */
-    private Function<DeviceService.RegisteredDeviceWrapper, RegisteredDeviceDto> toWrapper() {
-        return (wrapper -> {
-            if (wrapper.getUser().isPresent()) {
-                return new RegisteredDeviceDto(wrapper, getDeviceLocationUri(wrapper.getDevice(), uriInfo),
-                        getUserLocationUri(wrapper.getUser().get(), uriInfo));
-            }
-            return new RegisteredDeviceDto(wrapper, getDeviceLocationUri(wrapper.getDevice(), uriInfo));
-        });
-    }
-
-    /**
-     * Gets the base64url representation of the given {@link Device} id.
-     *
-     * @param device The {@link Device} whose id in base64url must be calculated.
-     * @return The base64url representation of the given {@code device}.
-     */
-    /* package */
-    static String toBase64UrlId(Device device) {
-        return Base64Utils.encodeToUrlSafeString(Long.toString(device.getId()).getBytes());
-    }
-
-    /**
-     * Returns the location {@link URI} of the given {@link Device}
-     * according to the context hold by the given {@link UriInfo}
-     *
-     * @param device  The {@link Device}'s whose location {@link URI} must be retrieved.
-     * @param uriInfo The {@link UriInfo} holding the context.
-     * @return The location {@link URI} of the given {@link Device}
-     */
-    private static URI getDeviceLocationUri(Device device, UriInfo uriInfo) {
-        return uriInfo.getBaseUriBuilder().clone()
-                .path(DEVICES_ENDPOINT)
-                .path(toBase64UrlId(device))
-                .build();
-    }
-
-    /**
-     * Returns the location {@link URI} of the given {@link User}
-     * according to the context hold by the given {@link UriInfo}
-     *
-     * @param user    The {@link User}'s whose location {@link URI} must be retrieved.
-     * @param uriInfo The {@link UriInfo} holding the context.
-     * @return The location {@link URI} of the given {@link User}
-     */
-    private static URI getUserLocationUri(User user, UriInfo uriInfo) {
-        return UserEndpoint.baseUserUriBuilder(user.getId(), uriInfo).build();
     }
 }

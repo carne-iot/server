@@ -4,18 +4,16 @@ import ar.edu.itba.iot.carne_iot.server.models.Device;
 import ar.edu.itba.iot.carne_iot.server.models.User;
 import ar.edu.itba.iot.carne_iot.server.services.DeviceService.DeviceWithNicknameWrapper;
 import ar.edu.itba.iot.carne_iot.server.web.controller.hateoas.HateoasResourceHelper;
-import ar.edu.itba.iot.carne_iot.server.web.controller.hateoas.Resoursable;
 import ar.edu.itba.iot.carne_iot.server.web.controller.rest_endpoints.UserDevicesEndpoint;
 import ar.edu.itba.iot.carne_iot.server.web.support.data_transfer.Base64UrlHelper;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.glassfish.jersey.uri.internal.JerseyUriBuilder;
 import org.springframework.hateoas.Resource;
 
 
 /**
  * Data transfer object for {@link Device} class, including {@link User} specific information of the device.
  */
-public class UserDeviceDto extends DeviceDto implements Resoursable {
+public class UserDeviceDto extends DeviceDto {
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private String nickname;
@@ -33,7 +31,7 @@ public class UserDeviceDto extends DeviceDto implements Resoursable {
      * @param wrapper The {@link DeviceWithNicknameWrapper} with the needed data.
      */
     private UserDeviceDto(DeviceWithNicknameWrapper wrapper) {
-        super(wrapper.getDevice(), new JerseyUriBuilder().build());
+        super(wrapper.getDevice());
         this.nickname = wrapper.getNickname();
     }
 
