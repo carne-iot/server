@@ -76,16 +76,6 @@ public class UserEndpoint {
     // Basic User Operation
     // ======================================
 
-    @GET
-    @Path("/fuck")
-    public Response testing() {
-        return userService.getById(2)
-                .map(UserDto::asResource)
-                .map(Response::ok)
-                .orElse(Response.status(Response.Status.NOT_FOUND))
-                .build();
-    }
-
 
     @GET
     public Response findMatching(@QueryParam("fullName") final String fullName,
