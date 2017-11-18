@@ -2,10 +2,11 @@ package ar.edu.itba.iot.carne_iot.server.web.controller.dtos.entities;
 
 import ar.edu.itba.iot.carne_iot.server.models.Role;
 import ar.edu.itba.iot.carne_iot.server.models.User;
+import ar.edu.itba.iot.carne_iot.server.web.controller.hateoas.HateoasResourceHelper;
+import ar.edu.itba.iot.carne_iot.server.web.controller.hateoas.Resoursable;
 import ar.edu.itba.iot.carne_iot.server.web.controller.rest_endpoints.UserEndpoint;
 import ar.edu.itba.iot.carne_iot.server.web.support.data_transfer.json.deserializers.Java8ISOLocalDateDeserializer;
 import ar.edu.itba.iot.carne_iot.server.web.support.data_transfer.json.serializers.Java8ISOLocalDateSerializer;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -18,7 +19,7 @@ import java.util.Set;
 /**
  * Data transfer object for {@link User} class.
  */
-public class UserDto implements HateoasHelper.IdentifiableResoursable<Long> {
+public class UserDto implements Resoursable {
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Long id;
@@ -88,9 +89,14 @@ public class UserDto implements HateoasHelper.IdentifiableResoursable<Long> {
     }
 
 
-    @Override
-    @JsonIgnore
-    public Long getIdentification() {
+    /**
+     * @return The identification for the {@link User} being represented by this dto.
+     */
+    private long getIdentification() {
+        if (this.id == null) {
+            throw new IllegalStateException("This method must be called when the id is loaded");
+        }
+
         return this.id;
     }
 
@@ -101,7 +107,7 @@ public class UserDto implements HateoasHelper.IdentifiableResoursable<Long> {
      * @return A {@link Resource} of {@link UserDto}.
      */
     public static Resource<UserDto> asResource(User user) {
-        return HateoasHelper.toIdentifiableResource(new UserDto(user), UserEndpoint.class);
+        return HateoasResourceHelper.toIdentifiableResource(new UserDto(user), UserDto::getIdentification, UserEndpoint.class);
     }
 
     /**
