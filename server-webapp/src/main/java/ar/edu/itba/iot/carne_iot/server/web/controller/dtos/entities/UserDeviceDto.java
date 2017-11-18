@@ -1,17 +1,21 @@
 package ar.edu.itba.iot.carne_iot.server.web.controller.dtos.entities;
 
 import ar.edu.itba.iot.carne_iot.server.models.Device;
-import ar.edu.itba.iot.carne_iot.server.models.DeviceRegistration;
 import ar.edu.itba.iot.carne_iot.server.models.User;
-import ar.edu.itba.iot.carne_iot.server.services.DeviceService;
+import ar.edu.itba.iot.carne_iot.server.services.DeviceService.DeviceWithNicknameWrapper;
+import ar.edu.itba.iot.carne_iot.server.web.controller.hateoas.HateoasResourceHelper;
+import ar.edu.itba.iot.carne_iot.server.web.controller.hateoas.Resoursable;
+import ar.edu.itba.iot.carne_iot.server.web.controller.rest_endpoints.UserDevicesEndpoint;
+import ar.edu.itba.iot.carne_iot.server.web.support.data_transfer.Base64UrlHelper;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.glassfish.jersey.uri.internal.JerseyUriBuilder;
+import org.springframework.hateoas.Resource;
 
-import java.net.URI;
 
 /**
  * Data transfer object for {@link Device} class, including {@link User} specific information of the device.
  */
-public class UserDeviceDto extends DeviceDto {
+public class UserDeviceDto extends DeviceDto implements Resoursable {
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private String nickname;
@@ -22,18 +26,34 @@ public class UserDeviceDto extends DeviceDto {
     }
 
     /**
-     * Constructor for {@link DeviceRegistration} (i.e take data from a registration object).
+     * Private constructor from a {@link DeviceWithNicknameWrapper}, to be used to create an instance of this
+     * by the {@link #asResource(DeviceWithNicknameWrapper, long)},
+     * which will be sent to the client
      *
-     * @param wrapper     The {@link ar.edu.itba.iot.carne_iot.server.services.DeviceService.DeviceWithNicknameWrapper}
-     *                    with the needed data.
-     * @param locationUrl The location url (in {@link URI} format) of the given {@link Device}.
+     * @param wrapper The {@link DeviceWithNicknameWrapper} with the needed data.
      */
-    public UserDeviceDto(DeviceService.DeviceWithNicknameWrapper wrapper, URI locationUrl) {
-        super(wrapper.getDevice(), locationUrl);
+    private UserDeviceDto(DeviceWithNicknameWrapper wrapper) {
+        super(wrapper.getDevice(), new JerseyUriBuilder().build());
         this.nickname = wrapper.getNickname();
     }
 
     public String getNickname() {
         return nickname;
+    }
+
+
+    /**
+     * Factory method that builds a {@link Resource} of {@link UserDeviceDto}
+     * from a given {@link DeviceWithNicknameWrapper}.
+     *
+     * @param wrapper The {@link DeviceWithNicknameWrapper} from which the resource will be built.
+     * @return A {@link Resource} of {@link UserDeviceDto}.
+     */
+    public static Resource<UserDeviceDto> asResource(DeviceWithNicknameWrapper wrapper, long ownerId) {
+
+        return HateoasResourceHelper.toIdentifiableResource(new UserDeviceDto(wrapper),
+                dto -> Base64UrlHelper.encodeFromNumber(dto.getId(), Object::toString),
+                UserDevicesEndpoint.class,
+                ownerId);
     }
 }
