@@ -8,6 +8,7 @@ import ar.edu.itba.iot.carne_iot.server.services.UserService;
 import ar.edu.itba.iot.carne_iot.server.web.controller.dtos.entities.StringValueDto;
 import ar.edu.itba.iot.carne_iot.server.web.controller.dtos.entities.UserDeviceDto;
 import ar.edu.itba.iot.carne_iot.server.web.controller.dtos.entities.UserDto;
+import ar.edu.itba.iot.carne_iot.server.web.controller.hateoas.LinkCreator;
 import ar.edu.itba.iot.carne_iot.server.web.support.annotations.Base64url;
 import ar.edu.itba.iot.carne_iot.server.web.support.annotations.Java8Time;
 import ar.edu.itba.iot.carne_iot.server.web.support.annotations.JerseyController;
@@ -155,7 +156,7 @@ public class UserEndpoint {
                             userDto.getUsername(), userDto.getEmail(), userDto.getPassword());
                 })
                 .map(user -> Response
-                        .created(uriInfo.getAbsolutePathBuilder().path(String.valueOf(user.getId())).build())
+                        .created(LinkCreator.createSelfURI(user, User::getId, UserEndpoint.class))
                         .build())
                 .orElseThrow(MissingJsonException::new);
     }
