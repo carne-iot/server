@@ -5,18 +5,18 @@ import ar.edu.itba.iot.carne_iot.server.services.SessionService;
 import ar.edu.itba.iot.carne_iot.server.web.controller.dtos.authentication.LoginCredentialsDto;
 import ar.edu.itba.iot.carne_iot.server.web.support.annotations.Base64url;
 import ar.edu.itba.iot.carne_iot.server.web.support.annotations.JerseyController;
+import ar.edu.itba.iot.carne_iot.server.web.support.data_transfer.Base64UrlHelper;
 import ar.edu.itba.iot.carne_iot.server.web.support.exceptions.IllegalParamValueException;
 import ar.edu.itba.iot.carne_iot.server.web.support.exceptions.MissingJsonException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.Base64Utils;
+import org.springframework.hateoas.jaxrs.JaxRsLinkBuilder;
 
 import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
+import java.net.URI;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -59,8 +59,6 @@ public class SessionEndpoint {
      */
     private final SessionService sessionService;
 
-    @Context
-    private UriInfo uriInfo;
 
     @Autowired
     public SessionEndpoint(LoginService loginService, SessionService sessionService) {
@@ -85,17 +83,14 @@ public class SessionEndpoint {
         LOGGER.debug("User {} successfully logged in", container.getUser().getUsername());
 
         // Generate url to perform logout of the new generated session
-        final String logoutUrl = uriInfo.getBaseUriBuilder()
-                .path(SESSIONS_ENDPOINT)
-                .path(LOGOUT_ROOT_ENDPOINT)
-                .path(Long.toString(container.getUser().getId()))
-                .path(Base64Utils.encodeToUrlSafeString(Long.toString(container.getJti()).getBytes()))
-                .build()
-                .toString();
+        final URI logoutURI = JaxRsLinkBuilder.linkTo(this.getClass())
+                .slash(LOGOUT_ROOT_ENDPOINT)
+                .slash(container.getUser().getId())
+                .slash(Base64UrlHelper.encodeFromNumber(container.getJti(), Object::toString)).toUri();
 
         return Response.noContent()
                 .header("X-Token", container.getToken())
-                .header("X-Logout-Url", logoutUrl)
+                .header("X-Logout-Url", logoutURI.toString())
                 .build();
     }
 
