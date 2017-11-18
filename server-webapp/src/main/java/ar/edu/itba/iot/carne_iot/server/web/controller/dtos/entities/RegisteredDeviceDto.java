@@ -4,7 +4,9 @@ import ar.edu.itba.iot.carne_iot.server.models.Device;
 import ar.edu.itba.iot.carne_iot.server.models.User;
 import ar.edu.itba.iot.carne_iot.server.services.DeviceService.RegisteredDeviceWrapper;
 import ar.edu.itba.iot.carne_iot.server.web.controller.hateoas.HateoasResourceHelper;
+import ar.edu.itba.iot.carne_iot.server.web.controller.hateoas.LinkCreator;
 import ar.edu.itba.iot.carne_iot.server.web.controller.rest_endpoints.DevicesEndpoint;
+import ar.edu.itba.iot.carne_iot.server.web.controller.rest_endpoints.UserEndpoint;
 import ar.edu.itba.iot.carne_iot.server.web.support.data_transfer.Base64UrlHelper;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.hateoas.Resource;
@@ -46,8 +48,13 @@ public class RegisteredDeviceDto extends DeviceDto {
      */
     public static Resource<RegisteredDeviceDto> asResource(RegisteredDeviceWrapper wrapper) {
 
-        return HateoasResourceHelper.toIdentifiableResource(new RegisteredDeviceDto(wrapper),
-                dto -> Base64UrlHelper.encodeFromNumber(dto.getId(), Object::toString),
-                DevicesEndpoint.class);
+        final Resource<RegisteredDeviceDto> resource = HateoasResourceHelper
+                .toIdentifiableResource(new RegisteredDeviceDto(wrapper),
+                        dto -> Base64UrlHelper.encodeFromNumber(dto.getId(), Object::toString),
+                        DevicesEndpoint.class);
+        wrapper.getUser().ifPresent(user ->
+                resource.add(LinkCreator.createLink(user, User::getId, "owner", UserEndpoint.class)));
+
+        return resource;
     }
 }
