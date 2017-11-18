@@ -107,7 +107,8 @@ public class UserDto implements Resoursable {
      * @return A {@link Resource} of {@link UserDto}.
      */
     public static Resource<UserDto> asResource(User user) {
-        return HateoasResourceHelper.toIdentifiableResource(new UserDto(user), UserDto::getIdentification, UserEndpoint.class);
+        return HateoasResourceHelper
+                .toIdentifiableResource(new UserDto(user), UserDto::getIdentification, UserEndpoint.class);
     }
 
     /**
