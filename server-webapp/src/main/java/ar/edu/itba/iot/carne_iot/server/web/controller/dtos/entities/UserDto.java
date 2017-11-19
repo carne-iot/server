@@ -2,22 +2,24 @@ package ar.edu.itba.iot.carne_iot.server.web.controller.dtos.entities;
 
 import ar.edu.itba.iot.carne_iot.server.models.Role;
 import ar.edu.itba.iot.carne_iot.server.models.User;
+import ar.edu.itba.iot.carne_iot.server.web.controller.hateoas.HateoasResourceHelper;
+import ar.edu.itba.iot.carne_iot.server.web.controller.hateoas.Resoursable;
+import ar.edu.itba.iot.carne_iot.server.web.controller.rest_endpoints.UserEndpoint;
 import ar.edu.itba.iot.carne_iot.server.web.support.data_transfer.json.deserializers.Java8ISOLocalDateDeserializer;
 import ar.edu.itba.iot.carne_iot.server.web.support.data_transfer.json.serializers.Java8ISOLocalDateSerializer;
-import ar.edu.itba.iot.carne_iot.server.web.support.data_transfer.json.serializers.URISerializer;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.hibernate.Hibernate;
+import org.springframework.hateoas.Resource;
 
-import java.net.URI;
 import java.time.LocalDate;
 import java.util.Set;
 
 /**
  * Data transfer object for {@link User} class.
  */
-public class UserDto {
+public class UserDto implements Resoursable {
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Long id;
@@ -45,30 +47,25 @@ public class UserDto {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private Set<Role> roles;
 
-    @SuppressWarnings("unused")
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    @JsonSerialize(using = URISerializer.class)
-    private URI locationUrl;
 
     public UserDto() {
         // For Jersey
     }
 
     /**
-     * Constructor.
+     * Private constructor from a {@link User}, to be used to create an instance of this
+     * by the {@link #asResource(User)},
+     * which will be sent to the client
      *
-     * @param user        The {@link User} from which the dto will be built.
-     * @param locationUrl The location url (in {@link URI} format) of the given {@link User}.
+     * @param user The {@link User} from which the dto will be built.
      */
-    public UserDto(User user, URI locationUrl) {
+    private UserDto(User user) {
         this.id = user.getId();
         this.fullName = user.getFullName();
         this.birthDate = user.getBirthDate();
         this.username = user.getUsername();
         this.email = user.getEmail();
         this.roles = Hibernate.isInitialized(user.getRoles()) ? user.getRoles() : null;
-
-        this.locationUrl = locationUrl;
     }
 
     public String getFullName() {
@@ -89,6 +86,29 @@ public class UserDto {
 
     public String getPassword() {
         return password;
+    }
+
+
+    /**
+     * @return The identification for the {@link User} being represented by this dto.
+     */
+    private long getIdentification() {
+        if (this.id == null) {
+            throw new IllegalStateException("This method must be called when the id is loaded");
+        }
+
+        return this.id;
+    }
+
+    /**
+     * Factory method that builds a {@link Resource} of {@link UserDto} from a given {@link User}.
+     *
+     * @param user The {@link User} from which the resource will be built.
+     * @return A {@link Resource} of {@link UserDto}.
+     */
+    public static Resource<UserDto> asResource(User user) {
+        return HateoasResourceHelper
+                .toIdentifiableResource(new UserDto(user), UserDto::getIdentification, UserEndpoint.class);
     }
 
     /**

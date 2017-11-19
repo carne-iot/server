@@ -2,12 +2,14 @@ package ar.edu.itba.iot.carne_iot.server.web.controller.dtos.entities;
 
 import ar.edu.itba.iot.carne_iot.server.models.Device;
 import ar.edu.itba.iot.carne_iot.server.models.User;
-import ar.edu.itba.iot.carne_iot.server.services.DeviceService;
-import ar.edu.itba.iot.carne_iot.server.web.support.data_transfer.json.serializers.URISerializer;
+import ar.edu.itba.iot.carne_iot.server.services.DeviceService.RegisteredDeviceWrapper;
+import ar.edu.itba.iot.carne_iot.server.web.controller.hateoas.HateoasResourceHelper;
+import ar.edu.itba.iot.carne_iot.server.web.controller.hateoas.LinkCreator;
+import ar.edu.itba.iot.carne_iot.server.web.controller.rest_endpoints.DevicesEndpoint;
+import ar.edu.itba.iot.carne_iot.server.web.controller.rest_endpoints.UserEndpoint;
+import ar.edu.itba.iot.carne_iot.server.web.support.data_transfer.Base64UrlHelper;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-
-import java.net.URI;
+import org.springframework.hateoas.Resource;
 
 /**
  * Data transfer object for {@link Device} class, including registration data.
@@ -15,12 +17,8 @@ import java.net.URI;
 public class RegisteredDeviceDto extends DeviceDto {
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    @SuppressWarnings({"FieldCanBeLocal", "unused"})
     private String ownerUsername;
-
-    @SuppressWarnings("unused")
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    @JsonSerialize(using = URISerializer.class)
-    private URI ownerUrl;
 
 
     public RegisteredDeviceDto() {
@@ -28,39 +26,35 @@ public class RegisteredDeviceDto extends DeviceDto {
     }
 
     /**
-     * Constructor for registered devices.
+     * Private constructor from a {@link RegisteredDeviceWrapper}, to be used to create an instance of this
+     * by the {@link #asResource(RegisteredDeviceWrapper)},
+     * which will be sent to the client
      *
-     * @param wrapper     The  {@link DeviceService.RegisteredDeviceWrapper} from which the dto will be built.
-     * @param locationUrl The location url (in {@link URI} format) of the given {@link Device}.
-     * @param ownerUrl    The location url (in {@link URI} format) of the {@link User} owning the device.
+     * @param wrapper The {@link RegisteredDeviceWrapper} with the needed data.
      */
-    public RegisteredDeviceDto(DeviceService.RegisteredDeviceWrapper wrapper, URI locationUrl, URI ownerUrl) {
-        super(wrapper.getDevice(), locationUrl);
+    private RegisteredDeviceDto(RegisteredDeviceWrapper wrapper) {
+        super(wrapper.getDevice());
         this.ownerUsername = wrapper.getUser()
-                .orElseThrow(() ->
-                        new IllegalArgumentException("This constructor should be used with a registered device"))
-                .getUsername();
-        this.ownerUrl = ownerUrl;
+                .map(User::getUsername)
+                .orElse(null);
     }
 
     /**
-     * Constructor for unregistered devices.
+     * Factory method that builds a {@link Resource} of {@link RegisteredDeviceDto}
+     * from a given {@link RegisteredDeviceWrapper}.
      *
-     * @param wrapper     The  {@link DeviceService.RegisteredDeviceWrapper} from which the dto will be built.
-     * @param locationUrl The location url (in {@link URI} format) of the given {@link Device}.
+     * @param wrapper The {@link RegisteredDeviceWrapper} from which the resource will be built.
+     * @return A {@link Resource} of {@link RegisteredDeviceDto}.
      */
-    public RegisteredDeviceDto(DeviceService.RegisteredDeviceWrapper wrapper, URI locationUrl) {
-        super(wrapper.getDevice(), locationUrl);
-        wrapper.getUser().ifPresent(user -> {
-            throw new IllegalArgumentException("This constructor should be used with an unregistered device");
-        });
-    }
+    public static Resource<RegisteredDeviceDto> asResource(RegisteredDeviceWrapper wrapper) {
 
-    public String getOwnerUsername() {
-        return ownerUsername;
-    }
+        final Resource<RegisteredDeviceDto> resource = HateoasResourceHelper
+                .toIdentifiableResource(new RegisteredDeviceDto(wrapper),
+                        dto -> Base64UrlHelper.encodeFromNumber(dto.getId(), Object::toString),
+                        DevicesEndpoint.class);
+        wrapper.getUser().ifPresent(user ->
+                resource.add(LinkCreator.createLink(user, User::getId, "owner", UserEndpoint.class)));
 
-    public URI getOwnerUrl() {
-        return ownerUrl;
+        return resource;
     }
 }
