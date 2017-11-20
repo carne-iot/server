@@ -45,6 +45,8 @@ import java.util.stream.Collectors;
 
     /**
      * Default constructor (no credentials are stored).
+     *
+     * @param roles The roles this token has.
      */
     /* package */ JwtAuthenticationToken(Set<Role> roles) {
         super(roles.stream().map(Role::toString).map(SimpleGrantedAuthority::new).collect(Collectors.toSet()));

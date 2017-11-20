@@ -25,7 +25,6 @@ import org.springframework.stereotype.Component;
      */
     private final DeviceRegistrationDao deviceRegistrationDao;
 
-
     @Autowired
     /* package */ DevicePermissionProviderImpl(DeviceRegistrationDao deviceRegistrationDao) {
         this.deviceRegistrationDao = deviceRegistrationDao;
@@ -50,5 +49,21 @@ import org.springframework.stereotype.Component;
         }
 
         return deviceRegistrationDao.existsByDeviceIdAndOwnerUsernameAndActiveTrue(deviceId, (String) principal);
+    }
+
+    @Override
+    public boolean isOwnDevice(long deviceId) {
+        final Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            return false;
+        }
+        final Object details = authentication.getDetails();
+        if (details == null || !(details instanceof Long)) {
+            LOGGER.error("An Authentication instance for devices has reached the service layer " +
+                    "having its details being null or without having a long as a principal.");
+            return false;
+        }
+
+        return ((Long) details) == deviceId; // TODO: maybe some more checks should be made
     }
 }

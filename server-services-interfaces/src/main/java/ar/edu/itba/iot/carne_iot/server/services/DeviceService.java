@@ -15,12 +15,6 @@ import java.util.Optional;
 public interface DeviceService {
 
     /**
-     * Constant indicating a role for a {@link ar.edu.itba.iot.carne_iot.server.models.Device}
-     * (i.e the one operating with the server is a {@link ar.edu.itba.iot.carne_iot.server.models.Device}).
-     */
-    String DEVICE_ROLE = "DEVICE";
-
-    /**
      * List all {@link Device}s stored in the system, in a paginated view.
      *
      * @param pageable The {@link Pageable} object containing pagination stuff.
