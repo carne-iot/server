@@ -1,11 +1,14 @@
 package ar.edu.itba.iot.carne_iot.server.web.security.authentication;
 
+import ar.edu.itba.iot.carne_iot.server.models.Role;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
+
+import java.util.Set;
 
 /**
  * {@link AuthenticationProvider} in charge of performing JWT authentication.
@@ -32,7 +35,7 @@ public final class JwtAuthenticationProvider implements AuthenticationProvider {
             final JwtCompiler.JwtTokenData tokenData = jwtCompiler.compile(jwtAuthenticationToken.getRawToken());
 
             // We create a new token with the needed data (username, roles, etc.)
-            final JwtAuthenticationToken resultToken = new JwtAuthenticationToken(tokenData.getRoles());
+            final JwtAuthenticationToken resultToken = createToken(tokenData);
             resultToken.setPrincipal(tokenData.getUsername());
             resultToken.setUserId(tokenData.getUserId());
             resultToken.authenticate();
@@ -46,5 +49,19 @@ public final class JwtAuthenticationProvider implements AuthenticationProvider {
     @Override
     public boolean supports(Class<?> authentication) {
         return JwtAuthenticationToken.class.isAssignableFrom(authentication);
+    }
+
+    /**
+     * Creates a {@link JwtAuthenticationToken} according to the given {@link JwtCompiler.JwtTokenData}.
+     *
+     * @param tokenData The {@link JwtCompiler.JwtTokenData} from which token information will be taken.
+     * @return The created {@link JwtAuthenticationToken}.
+     */
+    private JwtAuthenticationToken createToken(JwtCompiler.JwtTokenData tokenData) {
+        final Set<Role> roles = tokenData.getRoles();
+        if (tokenData instanceof JwtCompiler.DeviceJwtTokenData) {
+            return new DeviceJwtAuthenticationToken(roles, ((JwtCompiler.DeviceJwtTokenData) tokenData).getDeviceId());
+        }
+        return new JwtAuthenticationToken(roles);
     }
 }

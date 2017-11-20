@@ -1,5 +1,6 @@
 package ar.edu.itba.iot.carne_iot.server.web.security.authentication;
 
+import ar.edu.itba.iot.carne_iot.server.models.Device;
 import ar.edu.itba.iot.carne_iot.server.models.Role;
 import ar.edu.itba.iot.carne_iot.server.models.User;
 import ar.edu.itba.iot.carne_iot.server.security.JwtTokenGenerator;
@@ -25,6 +26,8 @@ import java.util.stream.Collectors;
     private final static String JWT_ID_CLAIM_NAME = "jti";
 
     private final static String ROLES_CLAIM_NAME = "roles";
+
+    private final static String DEVICE_ID_CLAIMS_NAME = "did";
 
     /**
      * {@link SessionService} used to check if a given token is valid.
@@ -63,7 +66,7 @@ import java.util.stream.Collectors;
     }
 
     @Override
-    public TokenAndSessionContainer generate(User user) {
+    public TokenAndSessionContainer generateUserToken(User user) {
         Objects.requireNonNull(user, "The user must not be null");
         if (!Hibernate.isInitialized(user.getRoles())) {
             throw new IllegalStateException("The user is not initialized correctly");
@@ -81,6 +84,30 @@ import java.util.stream.Collectors;
                 .setClaims(claims)
                 .setIssuedAt(now)
                 .setExpiration(new Date(now.getTime() + duration))
+                .signWith(signatureAlgorithm, base64EncodedSecretKey)
+                .compact();
+
+        return new TokenAndSessionContainer(token, jti);
+    }
+
+    @Override
+    public TokenAndSessionContainer generateDeviceToken(User user, Device device) {
+        Objects.requireNonNull(user, "The user must not be null");
+        Objects.requireNonNull(device, "The device must not be null");
+        final long jti = new SecureRandom().nextLong();
+
+        final Claims claims = Jwts.claims();
+        claims.put(USER_ID_CLAIM_NAME, user.getId());
+        claims.put(JWT_ID_CLAIM_NAME, jti);
+        claims.put(ROLES_CLAIM_NAME, Collections.singleton(Role.ROLE_DEVICE));
+        claims.put(DEVICE_ID_CLAIMS_NAME, device.getId());
+        claims.setSubject(user.getUsername());
+        final Date now = new Date();
+
+        final String token = Jwts.builder()
+                .setClaims(claims)
+                .setIssuedAt(now)
+                .setExpiration(new Date(Long.MAX_VALUE)) // Will expire after the world is ended
                 .signWith(signatureAlgorithm, base64EncodedSecretKey)
                 .compact();
 
@@ -107,6 +134,10 @@ import java.util.stream.Collectors;
             checkJwtBlacklist(userId, jti);
             final String username = claims.getSubject();
 
+            if (roles.contains(Role.ROLE_DEVICE)) {
+                final long deviceId = (long) claims.get(DEVICE_ID_CLAIMS_NAME);
+                return new DeviceJwtTokenData(userId, username, roles, deviceId);
+            }
             return new JwtTokenData(userId, username, roles);
         } catch (MalformedJwtException | SignatureException | ExpiredJwtException | UnsupportedJwtException
                 | MissingClaimException e) {

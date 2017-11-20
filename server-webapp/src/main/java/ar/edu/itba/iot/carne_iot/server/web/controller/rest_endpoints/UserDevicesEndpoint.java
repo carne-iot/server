@@ -141,6 +141,26 @@ public class UserDevicesEndpoint {
         return Response.noContent().build();
     }
 
+    @POST
+    @Path("/{deviceId : .+}/pair")
+    public Response pairDevice(@SuppressWarnings("RSReferenceInspection") @PathParam("id") final long id,
+                               @SuppressWarnings("RSReferenceInspection")
+                               @PathParam("deviceId") @Base64url final Long deviceId) {
+
+        LOGGER.debug("Trying to pair device with id {}", deviceId);
+
+        // Create a JWT for the paired device
+        final String token = deviceService.pair(id, deviceId);
+
+        LOGGER.debug("Device {} successfully paired", deviceId);
+
+        // TODO: if token can be invalidated, add an "invalidation" url
+
+        return Response.noContent()
+                .header("X-Device-Token", token)
+                .build();
+    }
+
 
     // ======================================
     // Helper Methods

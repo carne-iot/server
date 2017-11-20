@@ -74,4 +74,35 @@ public interface JwtCompiler {
             return Collections.unmodifiableSet(roles);
         }
     }
+
+    /**
+     * Container class wrapping data in a device JWT.
+     */
+    class DeviceJwtTokenData extends JwtTokenData {
+
+        /**
+         * The device id set in the JWT.
+         */
+        private final long deviceId;
+
+        /**
+         * Constructor.
+         *
+         * @param userId   The user id set in the JWT.
+         * @param username The username set in the JWT.
+         * @param roles    The user's granted authorities.
+         * @param deviceId The device id set in the JWT.
+         */
+        DeviceJwtTokenData(long userId, String username, Set<Role> roles, long deviceId) {
+            super(userId, username, roles);
+            this.deviceId = deviceId;
+        }
+
+        /**
+         * @return The device id set in the JWT.
+         */
+        public long getDeviceId() {
+            return deviceId;
+        }
+    }
 }
