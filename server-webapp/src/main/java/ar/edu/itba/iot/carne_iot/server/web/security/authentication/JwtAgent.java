@@ -1,8 +1,10 @@
 package ar.edu.itba.iot.carne_iot.server.web.security.authentication;
 
+import ar.edu.itba.iot.carne_iot.server.models.Device;
 import ar.edu.itba.iot.carne_iot.server.models.Role;
 import ar.edu.itba.iot.carne_iot.server.models.User;
 import ar.edu.itba.iot.carne_iot.server.security.JwtTokenGenerator;
+import ar.edu.itba.iot.carne_iot.server.services.DevicePairingService;
 import ar.edu.itba.iot.carne_iot.server.services.SessionService;
 import io.jsonwebtoken.*;
 import org.hibernate.Hibernate;
@@ -63,7 +65,7 @@ import java.util.stream.Collectors;
     }
 
     @Override
-    public TokenAndSessionContainer generate(User user) {
+    public TokenAndSessionContainer generateUserToken(User user) {
         Objects.requireNonNull(user, "The user must not be null");
         if (!Hibernate.isInitialized(user.getRoles())) {
             throw new IllegalStateException("The user is not initialized correctly");
@@ -81,6 +83,27 @@ import java.util.stream.Collectors;
                 .setClaims(claims)
                 .setIssuedAt(now)
                 .setExpiration(new Date(now.getTime() + duration))
+                .signWith(signatureAlgorithm, base64EncodedSecretKey)
+                .compact();
+
+        return new TokenAndSessionContainer(token, jti);
+    }
+
+    @Override
+    public TokenAndSessionContainer generateDeviceToken(User user, Device device) {
+        Objects.requireNonNull(user, "The user must not be null");
+        Objects.requireNonNull(device, "The device must not be null");
+        final long jti = new SecureRandom().nextLong();
+
+        final Claims claims = Jwts.claims();
+        claims.put(USER_ID_CLAIM_NAME, user.getId());
+        claims.put(JWT_ID_CLAIM_NAME, jti);
+        claims.put(ROLES_CLAIM_NAME, Collections.singleton(DevicePairingService.DEVICE_ROLE));
+        final Date now = new Date();
+
+        final String token = Jwts.builder()
+                .setClaims(claims)
+                .setIssuedAt(now)
                 .signWith(signatureAlgorithm, base64EncodedSecretKey)
                 .compact();
 
