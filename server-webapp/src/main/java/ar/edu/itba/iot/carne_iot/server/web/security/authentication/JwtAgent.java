@@ -4,7 +4,7 @@ import ar.edu.itba.iot.carne_iot.server.models.Device;
 import ar.edu.itba.iot.carne_iot.server.models.Role;
 import ar.edu.itba.iot.carne_iot.server.models.User;
 import ar.edu.itba.iot.carne_iot.server.security.JwtTokenGenerator;
-import ar.edu.itba.iot.carne_iot.server.services.DevicePairingService;
+import ar.edu.itba.iot.carne_iot.server.services.DeviceService;
 import ar.edu.itba.iot.carne_iot.server.services.SessionService;
 import io.jsonwebtoken.*;
 import org.hibernate.Hibernate;
@@ -98,7 +98,7 @@ import java.util.stream.Collectors;
         final Claims claims = Jwts.claims();
         claims.put(USER_ID_CLAIM_NAME, user.getId());
         claims.put(JWT_ID_CLAIM_NAME, jti);
-        claims.put(ROLES_CLAIM_NAME, Collections.singleton(DevicePairingService.DEVICE_ROLE));
+        claims.put(ROLES_CLAIM_NAME, Collections.singleton(DeviceService.DEVICE_ROLE));
         final Date now = new Date();
 
         final String token = Jwts.builder()
