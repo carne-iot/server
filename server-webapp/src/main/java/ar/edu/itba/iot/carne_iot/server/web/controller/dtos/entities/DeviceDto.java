@@ -15,7 +15,7 @@ import java.time.Instant;
 /**
  * Data transfer object for {@link Device} class, with common data of these entities.
  */
-public abstract class DeviceDto implements Resoursable {
+public class DeviceDto implements Resoursable {
 
     @JsonProperty
     @JsonSerialize(using = LongToUrlSafeBase64Serializer.class)

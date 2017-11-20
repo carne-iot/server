@@ -12,6 +12,7 @@ import ar.edu.itba.iot.carne_iot.server.web.controller.hateoas.LinkCreator;
 import ar.edu.itba.iot.carne_iot.server.web.support.annotations.Base64url;
 import ar.edu.itba.iot.carne_iot.server.web.support.annotations.JerseyController;
 import ar.edu.itba.iot.carne_iot.server.web.support.annotations.PaginationParam;
+import ar.edu.itba.iot.carne_iot.server.web.support.data_transfer.Base64UrlHelper;
 import ar.edu.itba.iot.carne_iot.server.web.support.exceptions.IllegalParamValueException;
 import ar.edu.itba.iot.carne_iot.server.web.support.exceptions.MissingJsonException;
 import org.slf4j.Logger;
@@ -109,7 +110,9 @@ public class DevicesEndpoint implements ValidationExceptionThrower {
                     return deviceService.createDevice(deviceDto.getId());
                 })
                 .map(device ->
-                        Response.created(LinkCreator.createSelfURI(device, Device::getId, DevicesEndpoint.class)))
+                        Response.created(LinkCreator.createSelfURI(device,
+                                d -> Base64UrlHelper.encodeFromNumber(d.getId(), Object::toString),
+                                DevicesEndpoint.class)))
                 .orElseThrow(MissingJsonException::new)
                 .build();
     }
