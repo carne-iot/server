@@ -8,7 +8,7 @@
     <parent>
         <groupId>ar.edu.itba.iot.carne-iot</groupId>
         <artifactId>server</artifactId>
-        <version>0.0.2.RELEASE</version>
+        <version>0.0.3.RELEASE</version>
     </parent>
 
     <artifactId>server-services-interfaces</artifactId>
