@@ -11,6 +11,7 @@ import ar.edu.itba.iot.carne_iot.server.persistence.query_helpers.FoodPreference
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -48,6 +49,7 @@ public class FoodPreferenceServiceImpl implements FoodPreferencesService {
 
 
     @Override
+    @PreAuthorize("@userPermissionProvider.readById(#userId)")
     public Page<FoodPreference> findByOwner(long userId, Pageable pageable) {
         final User user = userDao.findById(userId).orElseThrow(NoSuchEntityException::new);
         foodPreferenceQueryHelper.validatePageable(pageable);
@@ -56,6 +58,7 @@ public class FoodPreferenceServiceImpl implements FoodPreferencesService {
     }
 
     @Override
+    @PreAuthorize("@userPermissionProvider.readById(#userId)")
     public Optional<FoodPreference> findByNameAndOwner(String name, long userId) {
         final User user = userDao.findById(userId).orElseThrow(NoSuchEntityException::new);
 
@@ -63,6 +66,7 @@ public class FoodPreferenceServiceImpl implements FoodPreferencesService {
     }
 
     @Override
+    @PreAuthorize("@userPermissionProvider.writeById(#userId)")
     public FoodPreference create(String name, BigDecimal temperature, long userId) {
         final User user = userDao.findById(userId).orElseThrow(NoSuchEntityException::new);
         validateNameUniqueness(name, user);
@@ -73,6 +77,7 @@ public class FoodPreferenceServiceImpl implements FoodPreferencesService {
     }
 
     @Override
+    @PreAuthorize("@userPermissionProvider.writeById(#ownerId)")
     public void update(long ownerId, String actualName, String newName, BigDecimal newTemperature) {
         final User user = userDao.findById(ownerId).orElseThrow(NoSuchEntityException::new);
         final FoodPreference foodPreference = foodPreferenceDao.findByNameAndOwner(actualName, user)
@@ -85,6 +90,7 @@ public class FoodPreferenceServiceImpl implements FoodPreferencesService {
     }
 
     @Override
+    @PreAuthorize("@userPermissionProvider.deleteById(#ownerId)")
     public void delete(long ownerId, String name) {
         final User user = userDao.findById(ownerId).orElseThrow(NoSuchEntityException::new);
         foodPreferenceDao.findByNameAndOwner(name, user).ifPresent(foodPreferenceDao::delete);
