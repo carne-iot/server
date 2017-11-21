@@ -1,15 +1,16 @@
 package ar.edu.itba.iot.carne_iot.server.models;
 
-import ar.edu.itba.iot.carne_iot.server.error_handling.errros.IllegalStateError;
 import ar.edu.itba.iot.carne_iot.server.error_handling.errros.ValidationError;
 import ar.edu.itba.iot.carne_iot.server.error_handling.helpers.ValidationExceptionThrower;
 import ar.edu.itba.iot.carne_iot.server.error_handling.helpers.ValidationHelper;
-import ar.edu.itba.iot.carne_iot.server.exceptions.CustomIllegalStateException;
 import ar.edu.itba.iot.carne_iot.server.exceptions.ValidationException;
 import ar.edu.itba.iot.carne_iot.server.models.constants.ValidationConstants;
 import ar.edu.itba.iot.carne_iot.server.models.constants.ValidationErrorConstants;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.LinkedList;
@@ -41,13 +42,6 @@ public class Device implements ValidationExceptionThrower {
     @Column(name = "last_temperature_update")
     private Instant lastTemperatureUpdate;
 
-    /**
-     * The actual state of this device.
-     */
-    @Column(name = "state", length = 64)
-    @Enumerated(EnumType.STRING)
-    private State state;
-
 
     /* package */ Device() {
         // For Hibernate
@@ -62,7 +56,6 @@ public class Device implements ValidationExceptionThrower {
         this.id = id;
         this.temperature = null;
         this.lastTemperatureUpdate = null;
-        this.state = State.IDLE;
     }
 
     /**
@@ -88,49 +81,16 @@ public class Device implements ValidationExceptionThrower {
     }
 
     /**
-     * @return The actual state of this device.
-     */
-    public State getState() {
-        return state;
-    }
-
-    /**
      * Sets the actual temperature measured by this device.
      *
      * @param temperature The actual temperature measured by this device.
      * @throws ValidationException If the temperature is not valid.
      */
     public void setTemperature(BigDecimal temperature) throws ValidationException {
-        if (this.state != State.ACTIVE) {
-            throw new CustomIllegalStateException(CHANGE_TEMPERATURE_IN_NOT_ACTIVE_STATE);
-        }
         validateTemperature(temperature);
 
         this.temperature = temperature;
         this.lastTemperatureUpdate = Instant.now();
-    }
-
-    /**
-     * Changes this device state to active.
-     */
-    public void startCooking() {
-        this.state = State.ACTIVE;
-    }
-
-    /**
-     * Changes this device state to idle.
-     */
-    public void stopCooking() {
-        this.state = State.IDLE;
-    }
-
-
-    /**
-     * Enum listing all possible states for a {@link Device}.
-     */
-    public enum State {
-        IDLE,
-        ACTIVE,
     }
 
 
@@ -163,8 +123,4 @@ public class Device implements ValidationExceptionThrower {
 
     /* package */ static final int PRECISION = 5;
     /* package */ static final int SCALE = 2;
-
-    private static final IllegalStateError CHANGE_TEMPERATURE_IN_NOT_ACTIVE_STATE =
-            new IllegalStateError("Device must be active to set the temperature",
-                    Device.class.getSimpleName());
 }
