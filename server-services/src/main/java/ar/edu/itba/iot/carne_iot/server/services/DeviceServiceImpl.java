@@ -8,11 +8,9 @@ import ar.edu.itba.iot.carne_iot.server.exceptions.NoSuchEntityException;
 import ar.edu.itba.iot.carne_iot.server.exceptions.UniqueViolationException;
 import ar.edu.itba.iot.carne_iot.server.models.Device;
 import ar.edu.itba.iot.carne_iot.server.models.DeviceRegistration;
-import ar.edu.itba.iot.carne_iot.server.models.Session;
 import ar.edu.itba.iot.carne_iot.server.models.User;
 import ar.edu.itba.iot.carne_iot.server.persistence.daos.DeviceDao;
 import ar.edu.itba.iot.carne_iot.server.persistence.daos.DeviceRegistrationDao;
-import ar.edu.itba.iot.carne_iot.server.persistence.daos.SessionDao;
 import ar.edu.itba.iot.carne_iot.server.persistence.daos.UserDao;
 import ar.edu.itba.iot.carne_iot.server.persistence.query_helpers.DeviceQueryHelper;
 import ar.edu.itba.iot.carne_iot.server.persistence.query_helpers.DeviceRegistrationQueryHelper;
@@ -27,8 +25,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Collections;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -41,9 +39,11 @@ import java.util.function.Function;
 public class DeviceServiceImpl implements DeviceService, UniqueViolationExceptionThrower {
 
     /**
-     * Amount of tries to perform the pairing process.
+     * A system {@link User} to be used to create device tokens.
      */
-    private static final int MAX_TRIES = 10;
+    private static final User deviceUser = new User("device",
+            LocalDate.of(1900, 1, 1),
+            "username", "email@email.com", "hashed");
 
     /**
      * DAO for managing {@link User}s data.
@@ -75,24 +75,18 @@ public class DeviceServiceImpl implements DeviceService, UniqueViolationExceptio
      */
     private final JwtTokenGenerator jwtTokenGenerator;
 
-    /**
-     * DAO for retrieving {@link Session}s data.
-     */
-    private final SessionDao sessionDao;
-
 
     @Autowired
     public DeviceServiceImpl(UserDao userDao, DeviceDao deviceDao, DeviceRegistrationDao deviceRegistrationDao,
                              DeviceQueryHelper deviceQueryHelper,
                              DeviceRegistrationQueryHelper deviceRegistrationQueryHelper,
-                             JwtTokenGenerator jwtTokenGenerator, SessionDao sessionDao) {
+                             JwtTokenGenerator jwtTokenGenerator) {
         this.userDao = userDao;
         this.deviceDao = deviceDao;
         this.deviceRegistrationDao = deviceRegistrationDao;
         this.deviceQueryHelper = deviceQueryHelper;
         this.deviceRegistrationQueryHelper = deviceRegistrationQueryHelper;
         this.jwtTokenGenerator = jwtTokenGenerator;
-        this.sessionDao = sessionDao;
     }
 
 
@@ -209,7 +203,6 @@ public class DeviceServiceImpl implements DeviceService, UniqueViolationExceptio
     }
 
     @Override
-    @Transactional
     @PreAuthorize("@devicePermissionProvider.isOwnerOrAdmin(#deviceId)")
     public String pair(long ownerId, long deviceId) {
         final User user = userDao.findById(ownerId).orElseThrow(NoSuchEntityException::new);
@@ -220,39 +213,14 @@ public class DeviceServiceImpl implements DeviceService, UniqueViolationExceptio
             throw new CustomIllegalStateException(OPERATION_OVER_UNREGISTERED_DEVICE);
         }
 
-        // Try to create the token...
-        boolean validToken = false;
-        int tries = 0;
-        JwtTokenGenerator.TokenAndSessionContainer container = null;
-        while (!validToken && tries < MAX_TRIES) {
-            container = jwtTokenGenerator.generateDeviceToken(user, device);
-            validToken = !sessionDao.existsByOwnerAndJti(user, container.getJti());
-            tries++;
-        }
-        if (tries >= MAX_TRIES) {
-            throw new RuntimeException("Could not create a session after " + MAX_TRIES + "tries");
-        }
-
-        // Store token in order to pass the
-        Objects.requireNonNull(container, "The container was not initialized correctly");
-        final Session session = new Session(user, container.getJti());  // Actually not a session, but whatever
-        sessionDao.save(session);
-
-        return container.getToken();
+        return jwtTokenGenerator.generateDeviceToken(user, device).getToken();
     }
 
     @Override
-    @Transactional
-    @PreAuthorize("@devicePermissionProvider.isOwnerOrAdmin(#deviceId)")
-    public void startCooking(long deviceId) {
-        performChangeOfState(deviceId, Device::startCooking);
-    }
-
-    @Override
-    @Transactional
-    @PreAuthorize("@devicePermissionProvider.isOwnerOrAdmin(#deviceId)")
-    public void stopCooking(long deviceId) {
-        performChangeOfState(deviceId, Device::stopCooking);
+    @PreAuthorize("@adminPermissionProvider.isAdmin()")
+    public String pair(long deviceId) {
+        final Device device = deviceDao.findById(deviceId).orElseThrow(NoSuchEntityException::new);
+        return jwtTokenGenerator.generateDeviceToken(deviceUser, device).getToken();
     }
 
     @Override

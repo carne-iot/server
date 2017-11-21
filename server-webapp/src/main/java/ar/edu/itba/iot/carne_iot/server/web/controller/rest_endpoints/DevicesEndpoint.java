@@ -137,34 +137,6 @@ public class DevicesEndpoint implements ValidationExceptionThrower {
     // ======================================
 
     @PUT
-    @Path("/{id : .+}/cooking")
-    public Response startCooking(@PathParam("id") @Base64url final Long id) {
-        if (id == null) {
-            throw new IllegalParamValueException(Collections.singletonList("id"));
-        }
-
-        LOGGER.debug("Device with id {} started cooking", id);
-
-        deviceService.startCooking(id);
-
-        return Response.noContent().build();
-    }
-
-    @DELETE
-    @Path("/{id : .+}/cooking")
-    public Response stopCooking(@PathParam("id") @Base64url final Long id) {
-        if (id == null) {
-            throw new IllegalParamValueException(Collections.singletonList("id"));
-        }
-
-        LOGGER.debug("Device with id {} stopped cooking", id);
-
-        deviceService.stopCooking(id);
-
-        return Response.noContent().build();
-    }
-
-    @PUT
     @Path("/{id : .+}/temperature")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response updateTemperature(@PathParam("id") @Base64url final Long id, StringValueDto dto) {
@@ -181,5 +153,23 @@ public class DevicesEndpoint implements ValidationExceptionThrower {
         deviceService.updateTemperature(id, value);
 
         return Response.noContent().build();
+    }
+
+    @POST
+    @Path("/{deviceId : .+}/pair")
+    public Response pairDevice(@PathParam("deviceId") @Base64url final Long deviceId) {
+
+        LOGGER.debug("Trying to pair device with id {}", deviceId);
+
+        // Create a JWT for the paired device
+        final String token = deviceService.pair(deviceId);
+
+        LOGGER.debug("Device {} successfully paired", deviceId);
+
+        // TODO: if token can be invalidated, add an "invalidation" url
+
+        return Response.noContent()
+                .header("X-Device-Token", token)
+                .build();
     }
 }
