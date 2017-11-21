@@ -29,9 +29,6 @@ public class DeviceDto implements Resoursable {
     @JsonSerialize(using = Java8InstantSerializer.class)
     private Instant lastTemperatureUpdate;
 
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    private Device.State state;
-
 
     public DeviceDto() {
         // For Jersey
@@ -46,7 +43,6 @@ public class DeviceDto implements Resoursable {
         this.id = device.getId();
         this.temperature = device.getTemperature();
         this.lastTemperatureUpdate = device.getLastTemperatureUpdate();
-        this.state = device.getState();
     }
 
     public Long getId() {
@@ -59,9 +55,5 @@ public class DeviceDto implements Resoursable {
 
     public Instant getLastTemperatureUpdate() {
         return lastTemperatureUpdate;
-    }
-
-    public Device.State getState() {
-        return state;
     }
 }

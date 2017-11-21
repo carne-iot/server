@@ -225,20 +225,6 @@ public class DeviceServiceImpl implements DeviceService, UniqueViolationExceptio
 
     @Override
     @Transactional
-    @PreAuthorize("@devicePermissionProvider.isOwnerOrAdmin(#deviceId)")
-    public void startCooking(long deviceId) {
-        performChangeOfState(deviceId, Device::startCooking);
-    }
-
-    @Override
-    @Transactional
-    @PreAuthorize("@devicePermissionProvider.isOwnerOrAdmin(#deviceId)")
-    public void stopCooking(long deviceId) {
-        performChangeOfState(deviceId, Device::stopCooking);
-    }
-
-    @Override
-    @Transactional
     @PreAuthorize("hasRole(T(ar.edu.itba.iot.carne_iot.server.models.Role).ROLE_DEVICE) " +
             "and @devicePermissionProvider.isOwnDevice(#deviceId)")
     public void updateTemperature(long deviceId, BigDecimal temperature) {

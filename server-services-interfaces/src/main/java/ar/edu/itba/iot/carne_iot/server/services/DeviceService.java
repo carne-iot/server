@@ -113,22 +113,6 @@ public interface DeviceService {
     String pair(long deviceId);
 
     /**
-     * Makes a {@link Device} start cooking (i.e change its state to {@link Device.State#ACTIVE}).
-     * This is an idempotent operation.
-     *
-     * @param deviceId The id of the {@link Device} that will start cooking.
-     */
-    void startCooking(long deviceId);
-
-    /**
-     * Makes a {@link Device} stop cooking (i.e change its state to {@link Device.State#IDLE}).
-     * This is an idempotent operation.
-     *
-     * @param deviceId The id of the {@link Device} that will stop cooking.
-     */
-    void stopCooking(long deviceId);
-
-    /**
      * Updates the temperature of a given {@link Device}.
      *
      * @param deviceId    The id of the device being updated.
