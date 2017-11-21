@@ -34,12 +34,12 @@ public class LoginServiceImpl implements LoginService, ValidationExceptionThrowe
     private static final int MAX_TRIES = 10;
 
     /**
-     * DAO for retreiving {@link User}s data.
+     * DAO for retrieving {@link User}s data.
      */
     private final UserDao userDao;
 
     /**
-     * DAO for retreiving {@link Session}s data.
+     * DAO for retrieving {@link Session}s data.
      */
     private final SessionDao sessionDao;
 
@@ -109,7 +109,7 @@ public class LoginServiceImpl implements LoginService, ValidationExceptionThrowe
         int tries = 0;
         JwtTokenGenerator.TokenAndSessionContainer container = null;
         while (!validSession && tries < MAX_TRIES) {
-            container = jwtTokenGenerator.generate(user);
+            container = jwtTokenGenerator.generateUserToken(user);
             validSession = !sessionDao.existsByOwnerAndJti(user, container.getJti());
             tries++;
         }

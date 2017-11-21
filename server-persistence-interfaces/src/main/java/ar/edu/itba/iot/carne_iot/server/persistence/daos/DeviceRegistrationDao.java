@@ -58,4 +58,13 @@ public interface DeviceRegistrationDao extends ExtendedJpaRepository<DeviceRegis
      * @return {@code true} if it exists, or {@code false} otherwise.
      */
     boolean existsByDeviceIdAndOwnerUsernameAndActiveTrue(long deviceId, String username);
+
+    /**
+     * Indicates if a given {@link User} has a {@link Device} with a given {@code nickname}.
+     *
+     * @param user     The {@link User} owning the device.
+     * @param nickname The {@link Device} nickname.
+     * @return {@code true} if the {@link User} has the device, or {@code false} otherwise.
+     */
+    boolean existsByOwnerAndNickname(User user, String nickname);
 }

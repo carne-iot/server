@@ -4,6 +4,8 @@ import ar.edu.itba.iot.carne_iot.server.models.Role;
 import ar.edu.itba.iot.carne_iot.server.models.User;
 import ar.edu.itba.iot.carne_iot.server.web.controller.hateoas.HateoasResourceHelper;
 import ar.edu.itba.iot.carne_iot.server.web.controller.hateoas.Resoursable;
+import ar.edu.itba.iot.carne_iot.server.web.controller.rest_endpoints.FoodPreferencesEndpoint;
+import ar.edu.itba.iot.carne_iot.server.web.controller.rest_endpoints.UserDevicesEndpoint;
 import ar.edu.itba.iot.carne_iot.server.web.controller.rest_endpoints.UserEndpoint;
 import ar.edu.itba.iot.carne_iot.server.web.support.data_transfer.json.deserializers.Java8ISOLocalDateDeserializer;
 import ar.edu.itba.iot.carne_iot.server.web.support.data_transfer.json.serializers.Java8ISOLocalDateSerializer;
@@ -12,6 +14,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import org.hibernate.Hibernate;
 import org.springframework.hateoas.Resource;
+import org.springframework.hateoas.jaxrs.JaxRsLinkBuilder;
 
 import java.time.LocalDate;
 import java.util.Set;
@@ -107,8 +110,12 @@ public class UserDto implements Resoursable {
      * @return A {@link Resource} of {@link UserDto}.
      */
     public static Resource<UserDto> asResource(User user) {
-        return HateoasResourceHelper
+        final Resource<UserDto> resource = HateoasResourceHelper
                 .toIdentifiableResource(new UserDto(user), UserDto::getIdentification, UserEndpoint.class);
+        resource.add(JaxRsLinkBuilder.linkTo(FoodPreferencesEndpoint.class, user.getId()).withRel("foodPreferences"));
+        resource.add(JaxRsLinkBuilder.linkTo(UserDevicesEndpoint.class, user.getId()).withRel("devices"));
+
+        return resource;
     }
 
     /**

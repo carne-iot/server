@@ -11,5 +11,9 @@ public enum Role {
     /**
      * Indicates a {@link User} is an administrator.
      */
-    ROLE_ADMIN
+    ROLE_ADMIN,
+    /**
+     * Indicates that the owner of this role has permission to operate as a {@link Device}.
+     */
+    ROLE_DEVICE,
 }

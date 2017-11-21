@@ -1,5 +1,6 @@
 package ar.edu.itba.iot.carne_iot.server.security;
 
+import ar.edu.itba.iot.carne_iot.server.models.Device;
 import ar.edu.itba.iot.carne_iot.server.models.User;
 
 /**
@@ -13,7 +14,17 @@ public interface JwtTokenGenerator {
      * @param user The {@link User} to which the generated token belongs to.
      * @return The generated token together with its jti.
      */
-    TokenAndSessionContainer generate(final User user);
+    TokenAndSessionContainer generateUserToken(final User user);
+
+    /**
+     * Generates a token based on the given {@link User}, and the given {@link Device}.
+     * To be used for pairing a device (giving it the token to communicate with the server).
+     *
+     * @param user   The {@link User} owning the {@link Device}.
+     * @param device The {@link Device} to which the token will be granted.
+     * @return The generated token together with its jti.
+     */
+    TokenAndSessionContainer generateDeviceToken(final User user, final Device device);
 
     /**
      * Container class that wraps a token together with the session id it belongs to.

@@ -5,14 +5,18 @@ import ar.edu.itba.iot.carne_iot.server.error_handling.errros.UniqueViolationErr
 import ar.edu.itba.iot.carne_iot.server.error_handling.helpers.UniqueViolationExceptionThrower;
 import ar.edu.itba.iot.carne_iot.server.exceptions.CustomIllegalStateException;
 import ar.edu.itba.iot.carne_iot.server.exceptions.NoSuchEntityException;
+import ar.edu.itba.iot.carne_iot.server.exceptions.UniqueViolationException;
 import ar.edu.itba.iot.carne_iot.server.models.Device;
 import ar.edu.itba.iot.carne_iot.server.models.DeviceRegistration;
+import ar.edu.itba.iot.carne_iot.server.models.Session;
 import ar.edu.itba.iot.carne_iot.server.models.User;
 import ar.edu.itba.iot.carne_iot.server.persistence.daos.DeviceDao;
 import ar.edu.itba.iot.carne_iot.server.persistence.daos.DeviceRegistrationDao;
+import ar.edu.itba.iot.carne_iot.server.persistence.daos.SessionDao;
 import ar.edu.itba.iot.carne_iot.server.persistence.daos.UserDao;
 import ar.edu.itba.iot.carne_iot.server.persistence.query_helpers.DeviceQueryHelper;
 import ar.edu.itba.iot.carne_iot.server.persistence.query_helpers.DeviceRegistrationQueryHelper;
+import ar.edu.itba.iot.carne_iot.server.security.JwtTokenGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -24,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -34,6 +39,11 @@ import java.util.function.Function;
 @Service
 @Transactional(readOnly = true)
 public class DeviceServiceImpl implements DeviceService, UniqueViolationExceptionThrower {
+
+    /**
+     * Amount of tries to perform the pairing process.
+     */
+    private static final int MAX_TRIES = 10;
 
     /**
      * DAO for managing {@link User}s data.
@@ -60,16 +70,29 @@ public class DeviceServiceImpl implements DeviceService, UniqueViolationExceptio
      */
     private final DeviceRegistrationQueryHelper deviceRegistrationQueryHelper;
 
+    /**
+     * A {@link JwtTokenGenerator} to create tokens when login is performed.
+     */
+    private final JwtTokenGenerator jwtTokenGenerator;
+
+    /**
+     * DAO for retrieving {@link Session}s data.
+     */
+    private final SessionDao sessionDao;
+
 
     @Autowired
     public DeviceServiceImpl(UserDao userDao, DeviceDao deviceDao, DeviceRegistrationDao deviceRegistrationDao,
                              DeviceQueryHelper deviceQueryHelper,
-                             DeviceRegistrationQueryHelper deviceRegistrationQueryHelper) {
+                             DeviceRegistrationQueryHelper deviceRegistrationQueryHelper,
+                             JwtTokenGenerator jwtTokenGenerator, SessionDao sessionDao) {
         this.userDao = userDao;
         this.deviceDao = deviceDao;
         this.deviceRegistrationDao = deviceRegistrationDao;
         this.deviceQueryHelper = deviceQueryHelper;
         this.deviceRegistrationQueryHelper = deviceRegistrationQueryHelper;
+        this.jwtTokenGenerator = jwtTokenGenerator;
+        this.sessionDao = sessionDao;
     }
 
 
@@ -132,7 +155,14 @@ public class DeviceServiceImpl implements DeviceService, UniqueViolationExceptio
     @Transactional
     @PreAuthorize("@devicePermissionProvider.isOwnerOrAdmin(#deviceId)")
     public void setNickname(long ownerId, long deviceId, String nickname) {
-        performRegistrationChangeOfState(ownerId, deviceId, registration -> registration.setNickname(nickname));
+        performRegistrationChangeOfState(ownerId, deviceId, registration -> {
+            if (nickname != null
+                    && !nickname.equals(registration.getNickname())
+                    && deviceRegistrationDao.existsByOwnerAndNickname(registration.getOwner(), nickname)) {
+                throw new UniqueViolationException(Collections.singletonList(NICKNAME_ALREADY_IN_USE));
+            }
+            registration.setNickname(nickname);
+        });
     }
 
     @Override
@@ -181,6 +211,39 @@ public class DeviceServiceImpl implements DeviceService, UniqueViolationExceptio
     @Override
     @Transactional
     @PreAuthorize("@devicePermissionProvider.isOwnerOrAdmin(#deviceId)")
+    public String pair(long ownerId, long deviceId) {
+        final User user = userDao.findById(ownerId).orElseThrow(NoSuchEntityException::new);
+        final Device device = deviceDao.findById(deviceId).orElseThrow(NoSuchEntityException::new);
+
+        // Verify the device is registered
+        if (!deviceRegistrationDao.existsByDeviceAndActiveTrue(device)) {
+            throw new CustomIllegalStateException(OPERATION_OVER_UNREGISTERED_DEVICE);
+        }
+
+        // Try to create the token...
+        boolean validToken = false;
+        int tries = 0;
+        JwtTokenGenerator.TokenAndSessionContainer container = null;
+        while (!validToken && tries < MAX_TRIES) {
+            container = jwtTokenGenerator.generateDeviceToken(user, device);
+            validToken = !sessionDao.existsByOwnerAndJti(user, container.getJti());
+            tries++;
+        }
+        if (tries >= MAX_TRIES) {
+            throw new RuntimeException("Could not create a session after " + MAX_TRIES + "tries");
+        }
+
+        // Store token in order to pass the
+        Objects.requireNonNull(container, "The container was not initialized correctly");
+        final Session session = new Session(user, container.getJti());  // Actually not a session, but whatever
+        sessionDao.save(session);
+
+        return container.getToken();
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("@devicePermissionProvider.isOwnerOrAdmin(#deviceId)")
     public void startCooking(long deviceId) {
         performChangeOfState(deviceId, Device::startCooking);
     }
@@ -194,7 +257,8 @@ public class DeviceServiceImpl implements DeviceService, UniqueViolationExceptio
 
     @Override
     @Transactional
-    @PreAuthorize("@devicePermissionProvider.isOwnerOrAdmin(#deviceId)")
+    @PreAuthorize("hasRole(T(ar.edu.itba.iot.carne_iot.server.models.Role).ROLE_DEVICE) " +
+            "and @devicePermissionProvider.isOwnDevice(#deviceId)")
     public void updateTemperature(long deviceId, BigDecimal temperature) {
         performChangeOfState(deviceId, (deviceLambda) -> deviceLambda.setTemperature(temperature));
     }
@@ -258,6 +322,10 @@ public class DeviceServiceImpl implements DeviceService, UniqueViolationExceptio
 
     private static final UniqueViolationError ALREADY_REGISTERED =
             new UniqueViolationError("The device id is already registered", "deviceId");
+
+    private static final UniqueViolationError NICKNAME_ALREADY_IN_USE =
+            new UniqueViolationError("The nickname for the device is already in use",
+                    "nickname", "userId");
 
     private static final IllegalStateError OPERATION_OVER_UNREGISTERED_DEVICE =
             new IllegalStateError("Device must be registered to operate over it",

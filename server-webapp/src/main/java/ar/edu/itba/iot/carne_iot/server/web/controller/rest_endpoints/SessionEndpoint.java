@@ -69,6 +69,7 @@ public class SessionEndpoint {
 
     @POST
     @Path(LOGIN_ENDPOINT)
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response login(LoginCredentialsDto loginCredentialsDto) {
         if (loginCredentialsDto == null) {
             throw new MissingJsonException();

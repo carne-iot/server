@@ -161,8 +161,8 @@ public class Device implements ValidationExceptionThrower {
     // Constants
     // ====================
 
-    private static final int PRECISION = 5;
-    private static final int SCALE = 2;
+    /* package */ static final int PRECISION = 5;
+    /* package */ static final int SCALE = 2;
 
     private static final IllegalStateError CHANGE_TEMPERATURE_IN_NOT_ACTIVE_STATE =
             new IllegalStateError("Device must be active to set the temperature",
