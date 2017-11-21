@@ -130,14 +130,13 @@ import java.util.stream.Collectors;
             final long userId = (long) claims.get(USER_ID_CLAIM_NAME);
             final long jti = (long) claims.get(JWT_ID_CLAIM_NAME);
             @SuppressWarnings("unchecked") final Set<Role> roles = (Set<Role>) claims.get(ROLES_CLAIM_NAME);
-
-            checkJwtBlacklist(userId, jti);
             final String username = claims.getSubject();
 
             if (roles.contains(Role.ROLE_DEVICE)) {
                 final long deviceId = (long) claims.get(DEVICE_ID_CLAIMS_NAME);
                 return new DeviceJwtTokenData(userId, username, roles, deviceId);
             }
+            checkJwtBlacklist(userId, jti);  // Device tokens are not blacklisted
             return new JwtTokenData(userId, username, roles);
         } catch (MalformedJwtException | SignatureException | ExpiredJwtException | UnsupportedJwtException
                 | MissingClaimException e) {
