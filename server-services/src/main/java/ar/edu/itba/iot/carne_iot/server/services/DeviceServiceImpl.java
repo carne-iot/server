@@ -5,6 +5,7 @@ import ar.edu.itba.iot.carne_iot.server.error_handling.errros.UniqueViolationErr
 import ar.edu.itba.iot.carne_iot.server.error_handling.helpers.UniqueViolationExceptionThrower;
 import ar.edu.itba.iot.carne_iot.server.exceptions.CustomIllegalStateException;
 import ar.edu.itba.iot.carne_iot.server.exceptions.NoSuchEntityException;
+import ar.edu.itba.iot.carne_iot.server.exceptions.UniqueViolationException;
 import ar.edu.itba.iot.carne_iot.server.models.Device;
 import ar.edu.itba.iot.carne_iot.server.models.DeviceRegistration;
 import ar.edu.itba.iot.carne_iot.server.models.Session;
@@ -154,7 +155,14 @@ public class DeviceServiceImpl implements DeviceService, UniqueViolationExceptio
     @Transactional
     @PreAuthorize("@devicePermissionProvider.isOwnerOrAdmin(#deviceId)")
     public void setNickname(long ownerId, long deviceId, String nickname) {
-        performRegistrationChangeOfState(ownerId, deviceId, registration -> registration.setNickname(nickname));
+        performRegistrationChangeOfState(ownerId, deviceId, registration -> {
+            if (nickname != null
+                    && !nickname.equals(registration.getNickname())
+                    && deviceRegistrationDao.existsByOwnerAndNickname(registration.getOwner(), nickname)) {
+                throw new UniqueViolationException(Collections.singletonList(NICKNAME_ALREADY_IN_USE));
+            }
+            registration.setNickname(nickname);
+        });
     }
 
     @Override
@@ -314,6 +322,10 @@ public class DeviceServiceImpl implements DeviceService, UniqueViolationExceptio
 
     private static final UniqueViolationError ALREADY_REGISTERED =
             new UniqueViolationError("The device id is already registered", "deviceId");
+
+    private static final UniqueViolationError NICKNAME_ALREADY_IN_USE =
+            new UniqueViolationError("The nickname for the device is already in use",
+                    "nickname", "userId");
 
     private static final IllegalStateError OPERATION_OVER_UNREGISTERED_DEVICE =
             new IllegalStateError("Device must be registered to operate over it",
