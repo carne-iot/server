@@ -29,6 +29,7 @@ public class ValidationConstants {
     public static final int MINIMUM_AGE = 13;
     public final static BigDecimal MIN_TEMPERATURE = new BigDecimal(MIN_TEMPERATURE_STRING);
     public final static int NICKNAME_MIN_LENGTH = 1;
+    public final static int PREFERENCE_NAME_MIN_LENGTH = 1;
 
 
     // ==================================
@@ -40,5 +41,6 @@ public class ValidationConstants {
     public final static int EMAIL_MAX_LENGTH = 254;
     public final static BigDecimal MAX_TEMPERATURE = new BigDecimal(MAX_TEMPERATURE_STRING);
     public final static int NICKNAME_MAX_LENGTH = 256;
+    public final static int PREFERENCE_NAME_MAX_LENGTH = 256;
 
 }
