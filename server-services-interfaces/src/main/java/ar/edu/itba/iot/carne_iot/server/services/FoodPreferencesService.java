@@ -1,6 +1,7 @@
 package ar.edu.itba.iot.carne_iot.server.services;
 
 import ar.edu.itba.iot.carne_iot.server.models.FoodPreference;
+import ar.edu.itba.iot.carne_iot.server.models.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -22,15 +23,6 @@ public interface FoodPreferencesService {
      * @return The resulting {@link Page}.
      */
     Page<FoodPreference> findByOwner(long userId, Pageable pageable);
-
-    /**
-     * Gets a specific {@link FoodPreference} by it's {@code id}.
-     *
-     * @param id The {@link FoodPreference}'s id.
-     * @return A <b>nullable</b> {@link Optional} of {@link FoodPreference}
-     * containing the {@link FoodPreference} with the given {@code id} if it exists, or {@code null} otherwise.
-     */
-    Optional<FoodPreference> findById(long id);
 
     /**
      * Gets a {@link FoodPreference} with the given {@code name},
@@ -57,18 +49,22 @@ public interface FoodPreferencesService {
     FoodPreference create(String name, BigDecimal temperature, long userId);
 
     /**
-     * Updates the {@link FoodPreference} with the given {@code preferenceId}.
+     * Updates the {@link FoodPreference} with the given {@code actualName},
+     * belonging to the {@link User} with the given {@code ownerId}.
      *
-     * @param preferenceId The id of the {@link FoodPreference} to be updated.
-     * @param name         The new name for the {@link FoodPreference}.
-     * @param temperature  The new temperature for the {@link FoodPreference}.
+     * @param ownerId        The id of the {@link User} owning the {@link FoodPreference} to be updated.
+     * @param actualName     The actual name of the {@link FoodPreference} to be updated.
+     * @param newName        The new name for the {@link FoodPreference}.
+     * @param newTemperature The new temperature for the {@link FoodPreference}.
      */
-    void update(long preferenceId, String name, BigDecimal temperature);
+    void update(long ownerId, String actualName, String newName, BigDecimal newTemperature);
 
     /**
-     * Removes the {@link FoodPreference} with the given {@code preferenceId}.
+     * Removes the {@link FoodPreference} with the given {@code actualName},
+     * belonging to the {@link User} with the given {@code ownerId}.
      *
-     * @param preferenceId The id of the {@link FoodPreference} to be removed.
+     * @param ownerId The id of the {@link User} owning the {@link FoodPreference} to be deleted.
+     * @param name    The name of the {@link FoodPreference} to be deleted.
      */
-    void delete(long preferenceId);
+    void delete(long ownerId, String name);
 }

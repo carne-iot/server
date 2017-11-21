@@ -56,11 +56,6 @@ public class FoodPreferenceServiceImpl implements FoodPreferencesService {
     }
 
     @Override
-    public Optional<FoodPreference> findById(long id) {
-        return foodPreferenceDao.findById(id);
-    }
-
-    @Override
     public Optional<FoodPreference> findByNameAndOwner(String name, long userId) {
         final User user = userDao.findById(userId).orElseThrow(NoSuchEntityException::new);
 
@@ -78,19 +73,21 @@ public class FoodPreferenceServiceImpl implements FoodPreferencesService {
     }
 
     @Override
-    public void update(long preferenceId, String name, BigDecimal temperature) {
-        final FoodPreference foodPreference = foodPreferenceDao.findById(preferenceId)
+    public void update(long ownerId, String actualName, String newName, BigDecimal newTemperature) {
+        final User user = userDao.findById(ownerId).orElseThrow(NoSuchEntityException::new);
+        final FoodPreference foodPreference = foodPreferenceDao.findByNameAndOwner(actualName, user)
                 .orElseThrow(NoSuchEntityException::new);
-        if (name != null && !name.equals(foodPreference.getName())) {
-            validateNameUniqueness(name, foodPreference.getOwner());
+        if (newName != null && !newName.equals(foodPreference.getName())) {
+            validateNameUniqueness(newName, foodPreference.getOwner());
         }
-        foodPreference.update(name, temperature);
+        foodPreference.update(newName, newTemperature);
         foodPreferenceDao.save(foodPreference);
     }
 
     @Override
-    public void delete(long preferenceId) {
-        foodPreferenceDao.findById(preferenceId).ifPresent(foodPreferenceDao::delete);
+    public void delete(long ownerId, String name) {
+        final User user = userDao.findById(ownerId).orElseThrow(NoSuchEntityException::new);
+        foodPreferenceDao.findByNameAndOwner(name, user).ifPresent(foodPreferenceDao::delete);
     }
 
     /**
