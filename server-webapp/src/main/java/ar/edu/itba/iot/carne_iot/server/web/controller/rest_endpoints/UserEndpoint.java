@@ -251,7 +251,6 @@ public class UserEndpoint {
 
     @DELETE
     @Path("{id : \\d+}")
-    @Consumes(MediaType.APPLICATION_JSON)
     public Response deleteById(@PathParam("id") final long id) {
         if (id <= 0) {
             throw new IllegalParamValueException(Collections.singletonList("id"));
@@ -266,7 +265,6 @@ public class UserEndpoint {
 
     @DELETE
     @Path("username/{username : .+}")
-    @Consumes(MediaType.APPLICATION_JSON)
     public Response deleteByUsername(@PathParam("username") final String username) {
         if (username == null) {
             throw new IllegalParamValueException(Collections.singletonList("username"));
@@ -281,7 +279,6 @@ public class UserEndpoint {
 
     @DELETE
     @Path("email/{email : .+}")
-    @Consumes(MediaType.APPLICATION_JSON)
     public Response deleteByEmail(@PathParam("email") final String email) {
         if (email == null) {
             throw new IllegalParamValueException(Collections.singletonList("username"));

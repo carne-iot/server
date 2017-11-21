@@ -93,6 +93,7 @@ public class FoodPreferencesEndpoint {
     }
 
     @POST
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response create(@SuppressWarnings("RSReferenceInspection") @PathParam("id") final long id,
                            final FoodPreferenceDto foodPreferenceDto) {
         if (id <= 0) {
@@ -137,7 +138,6 @@ public class FoodPreferencesEndpoint {
 
     @DELETE
     @Path("/{name : .+}")
-    @Consumes(MediaType.APPLICATION_JSON)
     public Response delete(@SuppressWarnings("RSReferenceInspection") @PathParam("id") final long id,
                            @SuppressWarnings("RSReferenceInspection") @PathParam("name") final String name) {
         validateFoodPreferenceParams(id, name);
