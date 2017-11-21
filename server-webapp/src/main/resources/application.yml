@@ -44,7 +44,7 @@ custom:
         max-history: 5
     security:
         jwt:
-          duration: 3600
+          duration: 31536000
 
 ---
 # Configuration for Development Environment
