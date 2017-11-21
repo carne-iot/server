@@ -84,4 +84,11 @@ public class ValidationErrorConstants {
 
     public static final ValidationError MISSING_OWNER = new ValidationError(MISSING_VALUE, "owner",
             "The owner is missing.");
+
+    public static final ValidationError MISSING_PREFERENCE_NAME = new ValidationError(MISSING_VALUE, "name",
+            "The name is missing.");
+    public static final ValidationError PREFERENCE_NAME_TOO_SHORT = new ValidationError(ILLEGAL_VALUE, "name",
+            "The name is too short.");
+    public static final ValidationError PREFERENCE_NAME_TOO_LONG = new ValidationError(ILLEGAL_VALUE, "name",
+            "The name is too long.");
 }
