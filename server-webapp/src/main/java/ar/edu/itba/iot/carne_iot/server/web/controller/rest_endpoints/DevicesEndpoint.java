@@ -182,4 +182,22 @@ public class DevicesEndpoint implements ValidationExceptionThrower {
 
         return Response.noContent().build();
     }
+
+    @POST
+    @Path("/{deviceId : .+}/pair")
+    public Response pairDevice(@PathParam("deviceId") @Base64url final Long deviceId) {
+
+        LOGGER.debug("Trying to pair device with id {}", deviceId);
+
+        // Create a JWT for the paired device
+        final String token = deviceService.pair(deviceId);
+
+        LOGGER.debug("Device {} successfully paired", deviceId);
+
+        // TODO: if token can be invalidated, add an "invalidation" url
+
+        return Response.noContent()
+                .header("X-Device-Token", token)
+                .build();
+    }
 }
