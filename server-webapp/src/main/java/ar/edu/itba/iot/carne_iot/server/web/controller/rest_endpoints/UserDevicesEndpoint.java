@@ -110,6 +110,7 @@ public class UserDevicesEndpoint {
 
     @PUT
     @Path("/{deviceId : .+}/nickname")
+    @Consumes(MediaType.APPLICATION_JSON)
     public Response changeNickname(@SuppressWarnings("RSReferenceInspection") @PathParam("id") final long id,
                                    @SuppressWarnings("RSReferenceInspection")
                                    @PathParam("deviceId") @Base64url final Long deviceId,

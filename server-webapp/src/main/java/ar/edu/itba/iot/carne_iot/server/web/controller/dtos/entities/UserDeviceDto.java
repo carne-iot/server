@@ -45,6 +45,7 @@ public class UserDeviceDto extends DeviceDto {
      * from a given {@link DeviceWithNicknameWrapper}.
      *
      * @param wrapper The {@link DeviceWithNicknameWrapper} from which the resource will be built.
+     * @param ownerId The id of the {@link User} owning this {@link Device}.
      * @return A {@link Resource} of {@link UserDeviceDto}.
      */
     public static Resource<UserDeviceDto> asResource(DeviceWithNicknameWrapper wrapper, long ownerId) {
