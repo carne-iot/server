@@ -133,7 +133,11 @@ import java.util.stream.Collectors;
             final String username = claims.getSubject();
 
             if (roles.contains(Role.ROLE_DEVICE)) {
-                final long deviceId = (long) claims.get(DEVICE_ID_CLAIMS_NAME);
+                final Object deviceIdObject = claims.get(DEVICE_ID_CLAIMS_NAME);
+                if (!(deviceIdObject instanceof Number)) {
+                    throw new MalformedJwtException("The \"device id\" claim must be a number");
+                }
+                final long deviceId = ((Number) deviceIdObject).longValue();
                 return new DeviceJwtTokenData(userId, username, roles, deviceId);
             }
             checkJwtBlacklist(userId, jti);  // Device tokens are not blacklisted
