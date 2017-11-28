@@ -30,6 +30,10 @@ public class DeviceDto implements Resoursable {
     private Instant lastTemperatureUpdate;
 
 
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private BigDecimal targetTemperature;
+
+
     public DeviceDto() {
         // For Jersey
     }
@@ -43,6 +47,7 @@ public class DeviceDto implements Resoursable {
         this.id = device.getId();
         this.temperature = device.getTemperature();
         this.lastTemperatureUpdate = device.getLastTemperatureUpdate();
+        this.targetTemperature = device.getTargetTemperature();
     }
 
     public Long getId() {
@@ -55,5 +60,9 @@ public class DeviceDto implements Resoursable {
 
     public Instant getLastTemperatureUpdate() {
         return lastTemperatureUpdate;
+    }
+
+    public BigDecimal getTargetTemperature() {
+        return targetTemperature;
     }
 }

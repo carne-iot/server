@@ -71,6 +71,15 @@ public class ValidationErrorConstants {
     public static final ValidationError TOO_HIGH_TEMPERATURE = new ValidationError(MISSING_VALUE, "temperature",
             "The temperature is too high.");
 
+    public static final ValidationError MISSING_TARGET_TEMPERATURE = new ValidationError(MISSING_VALUE,
+            "targetTemperature", "The target temperature is missing.");
+
+    public static final ValidationError TOO_LOW_TARGET_TEMPERATURE = new ValidationError(MISSING_VALUE,
+            "targetTemperature", "The target temperature is too low.");
+
+    public static final ValidationError TOO_HIGH_TARGET_TEMPERATURE = new ValidationError(MISSING_VALUE,
+            "targetTemperature", "The target temperature is too high.");
+
 
     public static final ValidationError NICKNAME_TOO_SHORT = new ValidationError(MISSING_VALUE, "nickname",
             "The nickname is too short.");

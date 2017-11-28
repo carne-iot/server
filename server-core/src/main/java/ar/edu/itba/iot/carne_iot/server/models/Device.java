@@ -42,6 +42,12 @@ public class Device implements ValidationExceptionThrower {
     @Column(name = "last_temperature_update")
     private Instant lastTemperatureUpdate;
 
+    /**
+     * The temperature to which this device should reach.
+     */
+    @Column(name = "target_temperature", precision = PRECISION, scale = SCALE)
+    private BigDecimal targetTemperature;
+
 
     /* package */ Device() {
         // For Hibernate
@@ -56,6 +62,7 @@ public class Device implements ValidationExceptionThrower {
         this.id = id;
         this.temperature = null;
         this.lastTemperatureUpdate = null;
+        this.targetTemperature = null;
     }
 
     /**
@@ -81,16 +88,42 @@ public class Device implements ValidationExceptionThrower {
     }
 
     /**
+     * @return The temperature to which this device should reach.
+     */
+    public BigDecimal getTargetTemperature() {
+        return targetTemperature;
+    }
+
+    /**
      * Sets the actual temperature measured by this device.
      *
      * @param temperature The actual temperature measured by this device.
      * @throws ValidationException If the temperature is not valid.
      */
     public void setTemperature(BigDecimal temperature) throws ValidationException {
-        validateTemperature(temperature);
+        validateActualTemperature(temperature);
 
         this.temperature = temperature;
         this.lastTemperatureUpdate = Instant.now();
+    }
+
+    /**
+     * Sets the target temperature for this device.
+     *
+     * @param targetTemperature The target temperature for the device.
+     * @throws ValidationException If the temperature is not valid.
+     */
+    public void setTargetTemperature(BigDecimal targetTemperature) throws ValidationException {
+        validateTargeTemperature(targetTemperature);
+
+        this.targetTemperature = targetTemperature;
+    }
+
+    /**
+     * Removes the target temperature for this device.
+     */
+    public void removeTargetTemperature() {
+        this.targetTemperature = null;
     }
 
 
@@ -100,17 +133,50 @@ public class Device implements ValidationExceptionThrower {
 
     /**
      * Checks that the given {@code temperature} is valid (i.e not null and between valid ranges).
+     * To be used for te device actual temperature.
      *
      * @param temperature The temperature to be validated.
      * @throws ValidationException If the temperature is not valid.
      */
-    private void validateTemperature(BigDecimal temperature) throws ValidationException {
+    private void validateActualTemperature(BigDecimal temperature) throws ValidationException {
+        validateTemperature(temperature,
+                ValidationErrorConstants.MISSING_TEMPERATURE,
+                ValidationErrorConstants.TOO_LOW_TEMPERATURE,
+                ValidationErrorConstants.TOO_HIGH_TEMPERATURE);
+    }
+
+    /**
+     * Checks that the given {@code temperature} is valid (i.e not null and between valid ranges).
+     * To be used for te device actual temperature.
+     *
+     * @param temperature The temperature to be validated.
+     * @throws ValidationException If the temperature is not valid.
+     */
+    private void validateTargeTemperature(BigDecimal temperature) throws ValidationException {
+        validateTemperature(temperature,
+                ValidationErrorConstants.MISSING_TARGET_TEMPERATURE,
+                ValidationErrorConstants.TOO_LOW_TARGET_TEMPERATURE,
+                ValidationErrorConstants.TOO_HIGH_TARGET_TEMPERATURE);
+    }
+
+    /**
+     * Checks that the given {@code temperature} is valid (i.e not null and between valid ranges).
+     *
+     * @param temperature The temperature to be validated.
+     * @param missing     The {@link ValidationError} to throw in case the temperature is missing.
+     * @param tooLow      The {@link ValidationError} to throw in case the temperature is too low.
+     * @param tooHigh     The {@link ValidationError} to throw in case the temperature is too high.
+     * @throws ValidationException If the temperature is not valid.
+     */
+    private void validateTemperature(BigDecimal temperature,
+                                     ValidationError missing, ValidationError tooLow, ValidationError tooHigh)
+            throws ValidationException {
         final List<ValidationError> errorList = new LinkedList<>();
-        ValidationHelper.objectNotNull(temperature, errorList, ValidationErrorConstants.MISSING_TEMPERATURE);
+        ValidationHelper.objectNotNull(temperature, errorList, missing);
         if (temperature.compareTo(ValidationConstants.MIN_TEMPERATURE) < 0) {
-            errorList.add(ValidationErrorConstants.TOO_LOW_TEMPERATURE);
+            errorList.add(tooLow);
         } else if (temperature.compareTo(ValidationConstants.MAX_TEMPERATURE) > 0) {
-            errorList.add(ValidationErrorConstants.TOO_HIGH_TEMPERATURE);
+            errorList.add(tooHigh);
         }
 
         throwValidationException(errorList);
