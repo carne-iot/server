@@ -172,4 +172,38 @@ public class DevicesEndpoint implements ValidationExceptionThrower {
                 .header("X-Device-Token", token)
                 .build();
     }
+
+    @PUT
+    @Path("/{id : .+}/target-temperature")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response setTargetTemperature(@PathParam("id") @Base64url final Long id, StringValueDto dto) {
+        if (id == null) {
+            throw new IllegalParamValueException(Collections.singletonList("id"));
+        }
+        if (dto == null) {
+            throw new MissingJsonException();
+        }
+
+        LOGGER.debug("Setting target temperature of device with id {}", id);
+
+        final BigDecimal value = new BigDecimal(dto.getValue());
+        deviceService.setTargetTemperature(id, value);
+
+        return Response.noContent().build();
+    }
+
+    @DELETE
+    @Path("/{id : .+}/target-temperature")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response clearTargetTemperature(@PathParam("id") @Base64url final Long id) {
+        if (id == null) {
+            throw new IllegalParamValueException(Collections.singletonList("id"));
+        }
+
+        LOGGER.debug("Clearing target temperature of device with id {}", id);
+
+        deviceService.clearTargetTemperature(id);
+
+        return Response.noContent().build();
+    }
 }
