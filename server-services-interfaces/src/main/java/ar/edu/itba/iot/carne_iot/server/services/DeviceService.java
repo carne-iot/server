@@ -120,6 +120,20 @@ public interface DeviceService {
      */
     void updateTemperature(long deviceId, BigDecimal temperature);
 
+    /**
+     * Updates the target temperature of a given {@link Device}.
+     *
+     * @param deviceId          The id of the device being updated.
+     * @param targetTemperature The new target temperature for the device.
+     */
+    void setTargetTemperature(long deviceId, BigDecimal targetTemperature);
+
+    /**
+     * Removes the target temperature of a given {@link Device}.
+     *
+     * @param deviceId The id of the device being updated.
+     */
+    void clearTargetTemperature(long deviceId);
 
     /**
      * Wrapper class that holds {@link Device} data, possibly together with a {@link User} owning the Device.
