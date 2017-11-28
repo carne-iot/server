@@ -231,6 +231,20 @@ public class DeviceServiceImpl implements DeviceService, UniqueViolationExceptio
         performChangeOfState(deviceId, (deviceLambda) -> deviceLambda.setTemperature(temperature));
     }
 
+    @Override
+    @Transactional
+    @PreAuthorize("@devicePermissionProvider.isOwnerOrAdmin(#deviceId)")
+    public void setTargetTemperature(long deviceId, BigDecimal targetTemperature) {
+        performChangeOfState(deviceId, device -> device.setTargetTemperature(targetTemperature));
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("@devicePermissionProvider.isOwnerOrAdmin(#deviceId)")
+    public void clearTargetTemperature(long deviceId) {
+        performChangeOfState(deviceId, Device::removeTargetTemperature);
+    }
+
     // ================================
     // Helpers
     // ================================
